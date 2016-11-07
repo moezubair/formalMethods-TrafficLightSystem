@@ -88,9 +88,14 @@ liveness == /\ [] [NS="RED" => NS'="RED" \/ NS'="GREEN"]_vars   \* NS eventually
             /\ [] [EW="RED" => EW'="RED" \/ EW'="GREEN"]_vars \* EW eventually changes to Green
             /\ [] [EW="YELLOW" => EW'="YELLOW" \/ EW'="RED"]_vars \* EW eventually changes to Red
             /\ [] [EW="GREEN" => EW'="GREEN" \/ EW'="YELLOW"]_vars \* EW eventually changes to Yellow
+safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
+          /\ ~(NS="YELLOW" /\ EW="GREEN") \*EW should not be green until NS is red
+          /\ ~(NS="YELLOW" /\ EW="YELLOW") \*Both should not be yellow at the same time
+          /\ ~(NS="GREEN" /\ EW="YELLOW") \* NS should not turn green until ew is red
+           
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 06 16:03:51 PST 2016 by Zubair
+\* Last modified Sun Nov 06 16:22:17 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
 \* Created Thu Nov 03 10:15:54 PDT 2016 by Zubair
