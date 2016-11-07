@@ -82,10 +82,15 @@ Spec == Init /\ [][Next]_vars
 
 \* END TRANSLATION
 
-
+liveness == /\ [] [NS="RED" => NS'="RED" \/ NS'="GREEN"]_vars   \* NS eventually changes to Green
+            /\ [] [NS="YELLOW" => NS'="YELLOW" \/ NS'="RED"]_vars \* NS eventually changes to Red
+            /\ [] [NS="GREEN" => NS'="GREEN" \/ NS'="YELLOW"]_vars \* NS eventually changes to yellow
+            /\ [] [EW="RED" => EW'="RED" \/ EW'="GREEN"]_vars \* EW eventually changes to Green
+            /\ [] [EW="YELLOW" => EW'="YELLOW" \/ EW'="RED"]_vars \* EW eventually changes to Red
+            /\ [] [EW="GREEN" => EW'="GREEN" \/ EW'="YELLOW"]_vars \* EW eventually changes to Yellow
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 06 00:34:49 PDT 2016 by NoBody
+\* Last modified Sun Nov 06 16:03:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
 \* Created Thu Nov 03 10:15:54 PDT 2016 by Zubair
