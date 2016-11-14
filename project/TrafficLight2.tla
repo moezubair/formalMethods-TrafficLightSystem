@@ -1,4 +1,4 @@
---------------------------- MODULE TrafficLight1 ---------------------------
+--------------------------- MODULE TrafficLight2 ---------------------------
 EXTENDS Naturals
 (***************************************************************************
 --algorithm trafficLight {
@@ -102,6 +102,7 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
            
 =============================================================================
 \* Modification History
+\* Last modified Sun Nov 13 17:16:32 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
