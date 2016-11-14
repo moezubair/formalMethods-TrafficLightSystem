@@ -3,7 +3,6 @@ EXTENDS Naturals
 (***************************************************************************
 --algorithm trafficLight {
 variables NS = "GREEN"; EW ="RED";redgreen_interval=5; yellow_interval=1;
-\*{ while (TRUE){
 
     process (RedToGreen = 0) {  
            rtg1: await NS = "RED" /\ EW = "RED";
@@ -171,7 +170,7 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
            
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 13 17:46:59 PST 2016 by Stella
+\* Last modified Sun Nov 13 18:28:35 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
