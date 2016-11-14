@@ -2,11 +2,17 @@
 EXTENDS Naturals
 (***************************************************************************
 --algorithm trafficLight {
-variables NS = "GREEN"; EW ="RED";interval=5;
+variables NS = "GREEN"; EW ="RED";redgreen_interval=5; yellow_interval=1;
 { while (TRUE){
-    while (interval # 0){
-    interval := interval -1;
-    };
+    if (NS = "YELLOW" \/ EW="YELLOW"){
+        while(yellow_interval # 0}
+            yellow_interval := yellow_interval-1;
+        };
+    }else {
+        while (redgreen_interval # 0){
+            redgreen_interval := redgreen_interval -1;
+        };
+    }
     if (NS = "GREEN" /\ EW = "RED"){
        NS := "YELLOW";
        EW := "RED";
@@ -23,7 +29,8 @@ variables NS = "GREEN"; EW ="RED";interval=5;
         either{ NS:="GREEN"; EW:="RED"}
         or {NS:="RED"; EW:="GREEN"}
      };
-     interval := 5;
+     redgreen_interval := 5;
+     yellow_interval = 1;
     }
 }
 }
@@ -95,7 +102,7 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
            
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 06 16:22:17 PST 2016 by Zubair
+\* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
 \* Created Thu Nov 03 10:15:54 PDT 2016 by Zubair
