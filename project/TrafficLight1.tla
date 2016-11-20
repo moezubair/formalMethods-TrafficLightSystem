@@ -37,38 +37,6 @@ variables NS = "GREEN"; EW ="RED";redgreen_interval=5; yellow_interval=1;
     }
                
 
-
-
-\*
-\*    if (NS = "YELLOW" \/ EW="YELLOW"){
-\*        while(yellow_interval # 0}
-\*            yellow_interval := yellow_interval-1;
-\*        };
-\*    }else {
-\*        while (redgreen_interval # 0){
-\*            redgreen_interval := redgreen_interval -1;
-\*        };
-\*    }
-\*    if (NS = "GREEN" /\ EW = "RED"){
-\*       NS := "YELLOW";
-\*       EW := "RED";
-\*     }else if (NS = "YELLOW" /\ EW = "RED"){
-\*        either {NS:="RED";EW:="RED"}
-\*        or {NS:="RED";EW:="GREEN"}
-\*     }else if (NS = "RED" /\ EW ="GREEN"){
-\*       NS:= "RED";
-\*       EW:= "YELLOW";
-\*     }else if (NS = "RED" /\ EW = "YELLOW"){
-\*        either{NS:= "RED"; EW:="RED"}
-\*        or {NS:="GREEN"; EW:="RED"}
-\*     }else if (NS="RED" /\ EW="RED"){
-\*        either{ NS:="GREEN"; EW:="RED"}
-\*        or {NS:="RED"; EW:="GREEN"}
-\*     };
-\*     redgreen_interval := 5;
-\*     yellow_interval = 1;
-\*    }
-}
 }
 
 ****************************************************************************)
@@ -166,11 +134,31 @@ liveness == /\ [] [NS="RED" => NS'="RED" \/ NS'="GREEN"]_vars   \* NS eventually
 safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
           /\ ~(NS="YELLOW" /\ EW="GREEN") \*EW should not be green until NS is red
           /\ ~(NS="YELLOW" /\ EW="YELLOW") \*Both should not be yellow at the same time
-          /\ ~(NS="GREEN" /\ EW="YELLOW") \* NS should not turn green until ew is red
+          /\ ~(NS="GREEN" /\ EW="YELLOW") \* NS should not turn green until ew is red      
+          
+\* Figure out a way to randomly choose either 1 or 0
+bEWBut == IF(NS="GREEN") THEN 1
+          ELSE 0 
+          \*EITHER 1 
+\*           OR 0
+           
+bNSBut == IF(EW="GREEN") THEN 1
+          ELSE 0 
+\*EITHER 1 
+\*           OR 0
+
+bEWPed == IF(bEWBut=1) 
+           THEN EW
+           ELSE "RED"
+bNSPed == IF(bNSBut=1) 
+           THEN NS
+           ELSE "RED"
+
+A == INSTANCE TrafficLight2 WITH NSPed <- bNSPed, EWPed <- bEWPed, EWBut <- bEWBut, NSBut <- bNSBut, redgreen_interval_ped <- redgreen_interval, yellow_interval_ped <- yellow_interval
            
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 13 18:28:35 PST 2016 by Stella
+\* Last modified Sat Nov 19 18:30:57 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
