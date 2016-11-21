@@ -8,41 +8,7 @@ variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSPed="R
        
        rtg1: await NS = "RED" /\ EW = "RED";
         either{ NS:="GREEN"; EW:="RED"}
-        or {NS:="RED"; EW:="GREEN"} ;
-\*        
-\*        bp1: either NSBut:=1
-\*            or EWBut:=1
-\*            or {EWBut:=1; NSBut:=1};
-\*        cr1: await NSBut=1 \/ EWBut=1;
-\*        if(NSBut=1 /\ NS = "GREEN" /\ EW = "RED" /\ NSPed="RED"){
-\*            NSPed:="GREEN";
-\*            cr3: while (redgreen_interval_ped # 0){
-\*                redgreen_interval_ped := redgreen_interval_ped -1;
-\*            };
-\*            NSPed:="YELLOW";
-\*            cr4: while(yellow_interval_ped # 0){
-\*                yellow_interval_ped := yellow_interval_ped-1;
-\*            };
-\*            NSPed:="RED";
-\*            redgreen_interval_ped := 5;
-\*            yellow_interval_ped := 1;
-\*        
-\*        };
-\*        cr5: if(EWBut=1 /\ NS = "RED" /\ EW = "GREEN" /\ EWPed="RED"){
-\*            EWPed:="GREEN";
-\*            cr7: while (redgreen_interval_ped # 0){
-\*                redgreen_interval_ped := redgreen_interval_ped -1;
-\*            };
-\*            EWPed:="YELLOW";
-\*            cr8: while(yellow_interval_ped # 0){
-\*                yellow_interval_ped := yellow_interval_ped-1;
-\*            };
-\*            EWPed:="RED";
-\*            redgreen_interval_ped := 5;
-\*            yellow_interval_ped := 1;
-\*        }   
-\*        
-        
+        or {NS:="RED"; EW:="GREEN"} ;     
     }
     
     process (GreenToYellow = 1) { 
@@ -71,17 +37,14 @@ variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSPed="R
         yellow_interval :=1;
     }
          
-\*    process (ButPress = 3){
-\*        bp1: either NSBut:=1
-\*            or EWBut:=1
-\*            or {EWBut:=1; NSBut:=1}
-\*    }
+    process (ButPress = 3){
+        bp1: either NSBut:=1
+            or EWBut:=1
+            or {EWBut:=1; NSBut:=1}
+    }
     
     process (Cross = 4){
-        bp1: either NSBut:=1
-             or EWBut:=1
-             or {EWBut:=1; NSBut:=1};
-        cr1: await NSBut=1 \/ EWBut=1; \*(NSBut=1 /\ NS="GREEN") \/ (EWBut=1 /\ EW="GREEN");
+        cr1: \*await NSBut=1 \/ EWBut=1; \*(NSBut=1 /\ NS="GREEN") \/ (EWBut=1 /\ EW="GREEN");
         if(NSBut=1 /\ NS = "GREEN" /\ EW = "RED" /\ NSPed="RED"){
             NSPed:="GREEN";
             cr3: while (redgreen_interval_ped # 0){
@@ -113,38 +76,6 @@ variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSPed="R
         }      
     }
     
-
-
-
-\*
-\*    if (NS = "YELLOW" \/ EW="YELLOW"){
-\*        while(yellow_interval # 0}
-\*            yellow_interval := yellow_interval-1;
-\*        };
-\*    }else {
-\*        while (redgreen_interval # 0){
-\*            redgreen_interval := redgreen_interval -1;
-\*        };
-\*    }
-\*    if (NS = "GREEN" /\ EW = "RED"){
-\*       NS := "YELLOW";
-\*       EW := "RED";
-\*     }else if (NS = "YELLOW" /\ EW = "RED"){
-\*        either {NS:="RED";EW:="RED"}
-\*        or {NS:="RED";EW:="GREEN"}
-\*     }else if (NS = "RED" /\ EW ="GREEN"){
-\*       NS:= "RED";
-\*       EW:= "YELLOW";
-\*     }else if (NS = "RED" /\ EW = "YELLOW"){
-\*        either{NS:= "RED"; EW:="RED"}
-\*        or {NS:="GREEN"; EW:="RED"}
-\*     }else if (NS="RED" /\ EW="RED"){
-\*        either{ NS:="GREEN"; EW:="RED"}
-\*        or {NS:="RED"; EW:="GREEN"}
-\*     };
-\*     redgreen_interval := 5;
-\*     yellow_interval = 1;
-\*    }
 }
 }
 
@@ -156,7 +87,7 @@ VARIABLES NS, EW, redgreen_interval, yellow_interval, NSPed, EWPed, NSBut,
 vars == << NS, EW, redgreen_interval, yellow_interval, NSPed, EWPed, NSBut, 
            EWBut, redgreen_interval_ped, yellow_interval_ped, pc >>
 
-ProcSet == {0} \cup {1} \cup {2} \cup {4}
+ProcSet == {0} \cup {1} \cup {2} \cup {3} \cup {4}
 
 Init == (* Global variables *)
         /\ NS = "RED"
@@ -172,7 +103,8 @@ Init == (* Global variables *)
         /\ pc = [self \in ProcSet |-> CASE self = 0 -> "rtg1"
                                         [] self = 1 -> "gty1"
                                         [] self = 2 -> "ytr1"
-                                        [] self = 4 -> "bp1"]
+                                        [] self = 3 -> "bp1"
+                                        [] self = 4 -> "cr1"]
 
 rtg1 == /\ pc[0] = "rtg1"
         /\ NS = "RED" /\ EW = "RED"
@@ -241,19 +173,20 @@ ytr2 == /\ pc[2] = "ytr2"
 
 YellowToRed == ytr1 \/ ytr2
 
-bp1 == /\ pc[4] = "bp1"
+bp1 == /\ pc[3] = "bp1"
        /\ \/ /\ NSBut' = 1
              /\ EWBut' = EWBut
           \/ /\ EWBut' = 1
              /\ NSBut' = NSBut
           \/ /\ EWBut' = 1
              /\ NSBut' = 1
-       /\ pc' = [pc EXCEPT ![4] = "cr1"]
+       /\ pc' = [pc EXCEPT ![3] = "Done"]
        /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval, NSPed, 
                        EWPed, redgreen_interval_ped, yellow_interval_ped >>
 
+ButPress == bp1
+
 cr1 == /\ pc[4] = "cr1"
-       /\ NSBut=1 \/ EWBut=1
        /\ IF NSBut=1 /\ NS = "GREEN" /\ EW = "RED" /\ NSPed="RED"
              THEN /\ NSPed' = "GREEN"
                   /\ pc' = [pc EXCEPT ![4] = "cr3"]
@@ -321,9 +254,9 @@ cr8 == /\ pc[4] = "cr8"
        /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval, NSPed, 
                        NSBut >>
 
-Cross == bp1 \/ cr1 \/ cr3 \/ cr4 \/ cr5 \/ cr7 \/ cr8
+Cross == cr1 \/ cr3 \/ cr4 \/ cr5 \/ cr7 \/ cr8
 
-Next == RedToGreen \/ GreenToYellow \/ YellowToRed \/ Cross
+Next == RedToGreen \/ GreenToYellow \/ YellowToRed \/ ButPress \/ Cross
            \/ (* Disjunct to prevent deadlock on termination *)
               ((\A self \in ProcSet: pc[self] = "Done") /\ UNCHANGED vars)
 
@@ -343,46 +276,27 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
           /\ ~(NS="YELLOW" /\ EW="GREEN") \*EW should not be green until NS is red
           /\ ~(NS="YELLOW" /\ EW="YELLOW") \*Both should not be yellow at the same time
           /\ ~(NS="GREEN" /\ EW="YELLOW") \* NS should not turn green until ew is red
+pedliveness == /\ [] [NSBut=1 => NSPed="GREEN"]_vars
+               /\ [] [EWBut=1 => EWPed'="GREEN"]_vars
+               /\ [] [NSPed="RED" => NSPed'="RED" \/ NSPed'="GREEN"]_vars   \* NSPed eventually changes to Green
+               /\ [] [NSPed="YELLOW" => NSPed'="YELLOW" \/ NSPed'="RED"]_vars \* NSPed eventually changes to Red
+               /\ [] [NSPed="GREEN" => NSPed'="GREEN" \/ NSPed'="YELLOW"]_vars \* NSPed eventually changes to yellow
+               /\ [] [EWPed="RED" => EWPed'="RED" \/ EWPed'="GREEN"]_vars \* EWPed eventually changes to Green
+               /\ [] [EWPed="YELLOW" => EWPed'="YELLOW" \/ EWPed'="RED"]_vars \* EWPed eventually changes to Red
+               /\ [] [EWPed="GREEN" => EWPed'="GREEN" \/ EWPed'="YELLOW"]_vars \* EWPed eventually changes to Yellow
+               
 
-\*\* Figure out a way to randomly choose either 1 or 0
-\*bEWBut == IF(NS="GREEN") THEN 1
-\*          ELSE 0 
-\*          \*EITHER 1 
-\*\*           OR 0
-\*           
-\*bNSBut == IF(EW="GREEN") THEN 1
-\*          ELSE 0 
-\*\*EITHER 1 
-\*\*           OR 0
-\*
-\*bEWPed == IF(bEWBut=1) 
-\*           THEN EW
-\*           ELSE "RED"
-\*bNSPed == IF(bNSBut=1) 
-\*           THEN NS
-\*           ELSE "RED"
-\*bNS == 
-\*bpc == {{RedToGreen},{GreenToYellow},{YellowToRed}}
-\*bpc == {{"rtg1"},{"gty1","gty2"},{"ytr1","ytr2"},{"bp1","cr1","cr3","cr4","cr5",",cr7","cr8"}}
-\*bpc == {{pc[0]},{pc[1]},{pc[2]}}
-bpc == [pc EXCEPT ![4] = "Done"]
-\*bpc[0] == pc[0]
-\*bpc[1] == pc[1]
-\*bpc[2] == pc[2]
-\*bpc == [self \in ProcSet |-> CASE self = 0 -> "rtg1"
-\*            [] self = 1 -> "gty1"
-\*            [] self = 2 -> "ytr1"]
-\*            pc = [self \in ProcSet |-> CASE self = 0 -> "rtg1"
-\*                                        [] self = 1 -> "gty1"
-\*                                        [] self = 2 -> "ytr1"
-\*                                        [] self = 4 -> "bp1"]
 
-A == INSTANCE TrafficLight1 WITH NS<-NS, EW<-EW, redgreen_interval<-redgreen_interval, yellow_interval<-yellow_interval, pc<-bpc
-\*NSPed <- bNSPed, EWPed <- bEWPed, EWBut <- bEWBut, NSBut <- bNSBut, redgreen_interval_ped <- redgreen_interval, yellow_interval_ped <- yellow_interval
-           
+
+ProcSet2 == {0} \cup {1} \cup {2}
+bpc == [self \in ProcSet2 |-> CASE self = 0 -> pc[0]
+            [] self = 1 -> pc[1]
+            [] self = 2 -> pc[2]]
+
+A == INSTANCE TrafficLight1 WITH NS<-NS, EW<-EW, redgreen_interval<-redgreen_interval, yellow_interval<-yellow_interval, pc<-bpc          
 =============================================================================
 \* Modification History
-\* Last modified Mon Nov 21 12:16:44 PST 2016 by Stella
+\* Last modified Mon Nov 21 14:04:02 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
