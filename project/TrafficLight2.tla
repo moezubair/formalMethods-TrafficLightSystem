@@ -276,15 +276,14 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
           /\ ~(NS="YELLOW" /\ EW="GREEN") \*EW should not be green until NS is red
           /\ ~(NS="YELLOW" /\ EW="YELLOW") \*Both should not be yellow at the same time
           /\ ~(NS="GREEN" /\ EW="YELLOW") \* NS should not turn green until ew is red
-pedliveness == /\ [] [NSBut=1 => NSPed="GREEN"]_vars
-               /\ [] [EWBut=1 => EWPed'="GREEN"]_vars
-               /\ [] [NSPed="RED" => NSPed'="RED" \/ NSPed'="GREEN"]_vars   \* NSPed eventually changes to Green
+pedliveness == /\ [] [NSPed="RED" => NSPed'="RED" \/ NSPed'="GREEN"]_vars   \* NSPed eventually changes to Green
                /\ [] [NSPed="YELLOW" => NSPed'="YELLOW" \/ NSPed'="RED"]_vars \* NSPed eventually changes to Red
                /\ [] [NSPed="GREEN" => NSPed'="GREEN" \/ NSPed'="YELLOW"]_vars \* NSPed eventually changes to yellow
                /\ [] [EWPed="RED" => EWPed'="RED" \/ EWPed'="GREEN"]_vars \* EWPed eventually changes to Green
                /\ [] [EWPed="YELLOW" => EWPed'="YELLOW" \/ EWPed'="RED"]_vars \* EWPed eventually changes to Red
                /\ [] [EWPed="GREEN" => EWPed'="GREEN" \/ EWPed'="YELLOW"]_vars \* EWPed eventually changes to Yellow
-               
+               /\ [] [NSBut=1 => NSBut=1 \/ NSPed="GREEN"]_vars
+               /\ [] [EWBut=1 => EWBut=1 \/ EWPed="GREEN"]_vars
 
 
 
@@ -296,7 +295,7 @@ bpc == [self \in ProcSet2 |-> CASE self = 0 -> pc[0]
 A == INSTANCE TrafficLight1 WITH NS<-NS, EW<-EW, redgreen_interval<-redgreen_interval, yellow_interval<-yellow_interval, pc<-bpc          
 =============================================================================
 \* Modification History
-\* Last modified Mon Nov 21 14:04:02 PST 2016 by Stella
+\* Last modified Mon Nov 21 14:25:13 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
