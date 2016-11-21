@@ -44,8 +44,7 @@ variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSPed="R
     }
     
     process (Cross = 4){
-        cr1: \*await NSBut=1 \/ EWBut=1; \*(NSBut=1 /\ NS="GREEN") \/ (EWBut=1 /\ EW="GREEN");
-        if(NSBut=1 /\ NS = "GREEN" /\ EW = "RED" /\ NSPed="RED"){
+        cr1: if(NSBut=1 /\ NS = "GREEN" /\ EW = "RED" /\ NSPed="RED"){
             NSPed:="GREEN";
             cr3: while (redgreen_interval_ped # 0){
                 redgreen_interval_ped := redgreen_interval_ped -1;
@@ -284,6 +283,11 @@ pedliveness == /\ [] [NSPed="RED" => NSPed'="RED" \/ NSPed'="GREEN"]_vars   \* N
                /\ [] [EWPed="GREEN" => EWPed'="GREEN" \/ EWPed'="YELLOW"]_vars \* EWPed eventually changes to Yellow
                /\ [] [NSBut=1 => NSBut=1 \/ NSPed="GREEN"]_vars
                /\ [] [EWBut=1 => EWBut=1 \/ EWPed="GREEN"]_vars
+pedsafety == /\ ~(NSPed="GREEN" /\ EW="GREEN") \* Pedestrian cross and opposite traffic light should not both be green
+             /\ ~(NSPed="YELLOW" /\ EW="GREEN") 
+             /\ ~(EWPed="YELLOW" /\ NS="GREEN") 
+             /\ ~(EWPed="GREEN" /\ NS="GREEN")
+               
 
 
 
@@ -295,7 +299,7 @@ bpc == [self \in ProcSet2 |-> CASE self = 0 -> pc[0]
 A == INSTANCE TrafficLight1 WITH NS<-NS, EW<-EW, redgreen_interval<-redgreen_interval, yellow_interval<-yellow_interval, pc<-bpc          
 =============================================================================
 \* Modification History
-\* Last modified Mon Nov 21 14:25:13 PST 2016 by Stella
+\* Last modified Mon Nov 21 14:32:23 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
