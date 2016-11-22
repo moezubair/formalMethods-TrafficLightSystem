@@ -1,7 +1,7 @@
 --------------------------- MODULE TrafficLight2 ---------------------------
 EXTENDS Naturals
 (***************************************************************************
---algorithm trafficLight {
+--fair algorithm trafficLight {
 variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;redgreen_interval_ped=4;yellow_interval_ped=1
 
     process (RedToGreen = 0) {  
@@ -40,11 +40,13 @@ variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSPed="R
     process (ButPress = 3){
         bp1: either NSBut:=1
             or EWBut:=1
-            or {EWBut:=1; NSBut:=1}
+            or {EWBut:=1; NSBut:=1};
+\*        bp2: await EWBut=0 /\ NSBut=0;
     }
     
     process (Cross = 4){
-        cr1: if(NSBut=1 /\ NS = "GREEN" /\ EW = "RED" /\ NSPed="RED"){
+        cr1:  await EWBut=1 \/ NSBut=1  \/ (EWBut=0/\NSBut=0);
+            if(NSBut=1 /\ NS = "GREEN" /\ EW = "RED" /\ NSPed="RED"){
             NSPed:="GREEN";
             cr3: while (redgreen_interval_ped # 0){
                 redgreen_interval_ped := redgreen_interval_ped -1;
@@ -59,7 +61,10 @@ variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSPed="R
             NSBut := 0
         
         };
-        cr5: if(EWBut=1 /\ NS = "RED" /\ EW = "GREEN" /\ EWPed="RED"){
+    }
+    process (Cross2 = 5){
+        cr5: await EWBut=1 \/ NSBut=1 \/ (EWBut=0/\NSBut=0);
+        if(EWBut=1 /\ NS = "RED" /\ EW = "GREEN" /\ EWPed="RED"){
             EWPed:="GREEN";
             cr7: while (redgreen_interval_ped # 0){
                 redgreen_interval_ped := redgreen_interval_ped -1;
@@ -72,8 +77,12 @@ variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSPed="R
             redgreen_interval_ped := 5;
             yellow_interval_ped := 1;
             EWBut := 0
-        }      
+        }     
     }
+    
+\*    fair process (Crossed = 5){
+\*        cd1: await NSBut=0 /\ EWBut=0
+\*    }
     
 }
 }
@@ -86,7 +95,7 @@ VARIABLES NS, EW, redgreen_interval, yellow_interval, NSPed, EWPed, NSBut,
 vars == << NS, EW, redgreen_interval, yellow_interval, NSPed, EWPed, NSBut, 
            EWBut, redgreen_interval_ped, yellow_interval_ped, pc >>
 
-ProcSet == {0} \cup {1} \cup {2} \cup {3} \cup {4}
+ProcSet == {0} \cup {1} \cup {2} \cup {3} \cup {4} \cup {5}
 
 Init == (* Global variables *)
         /\ NS = "RED"
@@ -103,7 +112,8 @@ Init == (* Global variables *)
                                         [] self = 1 -> "gty1"
                                         [] self = 2 -> "ytr1"
                                         [] self = 3 -> "bp1"
-                                        [] self = 4 -> "cr1"]
+                                        [] self = 4 -> "cr1"
+                                        [] self = 5 -> "cr5"]
 
 rtg1 == /\ pc[0] = "rtg1"
         /\ NS = "RED" /\ EW = "RED"
@@ -186,10 +196,11 @@ bp1 == /\ pc[3] = "bp1"
 ButPress == bp1
 
 cr1 == /\ pc[4] = "cr1"
+       /\ EWBut=1 \/ NSBut=1  \/ (EWBut=0/\NSBut=0)
        /\ IF NSBut=1 /\ NS = "GREEN" /\ EW = "RED" /\ NSPed="RED"
              THEN /\ NSPed' = "GREEN"
                   /\ pc' = [pc EXCEPT ![4] = "cr3"]
-             ELSE /\ pc' = [pc EXCEPT ![4] = "cr5"]
+             ELSE /\ pc' = [pc EXCEPT ![4] = "Done"]
                   /\ NSPed' = NSPed
        /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval, EWPed, 
                        NSBut, EWBut, redgreen_interval_ped, 
@@ -215,51 +226,56 @@ cr4 == /\ pc[4] = "cr4"
                   /\ redgreen_interval_ped' = 5
                   /\ yellow_interval_ped' = 1
                   /\ NSBut' = 0
-                  /\ pc' = [pc EXCEPT ![4] = "cr5"]
+                  /\ pc' = [pc EXCEPT ![4] = "Done"]
        /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval, EWPed, 
                        EWBut >>
 
-cr5 == /\ pc[4] = "cr5"
+Cross == cr1 \/ cr3 \/ cr4
+
+cr5 == /\ pc[5] = "cr5"
+       /\ EWBut=1 \/ NSBut=1 \/ (EWBut=0/\NSBut=0)
        /\ IF EWBut=1 /\ NS = "RED" /\ EW = "GREEN" /\ EWPed="RED"
              THEN /\ EWPed' = "GREEN"
-                  /\ pc' = [pc EXCEPT ![4] = "cr7"]
-             ELSE /\ pc' = [pc EXCEPT ![4] = "Done"]
+                  /\ pc' = [pc EXCEPT ![5] = "cr7"]
+             ELSE /\ pc' = [pc EXCEPT ![5] = "Done"]
                   /\ EWPed' = EWPed
        /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval, NSPed, 
                        NSBut, EWBut, redgreen_interval_ped, 
                        yellow_interval_ped >>
 
-cr7 == /\ pc[4] = "cr7"
+cr7 == /\ pc[5] = "cr7"
        /\ IF redgreen_interval_ped # 0
              THEN /\ redgreen_interval_ped' = redgreen_interval_ped -1
-                  /\ pc' = [pc EXCEPT ![4] = "cr7"]
+                  /\ pc' = [pc EXCEPT ![5] = "cr7"]
                   /\ EWPed' = EWPed
              ELSE /\ EWPed' = "YELLOW"
-                  /\ pc' = [pc EXCEPT ![4] = "cr8"]
+                  /\ pc' = [pc EXCEPT ![5] = "cr8"]
                   /\ UNCHANGED redgreen_interval_ped
        /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval, NSPed, 
                        NSBut, EWBut, yellow_interval_ped >>
 
-cr8 == /\ pc[4] = "cr8"
+cr8 == /\ pc[5] = "cr8"
        /\ IF yellow_interval_ped # 0
              THEN /\ yellow_interval_ped' = yellow_interval_ped-1
-                  /\ pc' = [pc EXCEPT ![4] = "cr8"]
+                  /\ pc' = [pc EXCEPT ![5] = "cr8"]
                   /\ UNCHANGED << EWPed, EWBut, redgreen_interval_ped >>
              ELSE /\ EWPed' = "RED"
                   /\ redgreen_interval_ped' = 5
                   /\ yellow_interval_ped' = 1
                   /\ EWBut' = 0
-                  /\ pc' = [pc EXCEPT ![4] = "Done"]
+                  /\ pc' = [pc EXCEPT ![5] = "Done"]
        /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval, NSPed, 
                        NSBut >>
 
-Cross == cr1 \/ cr3 \/ cr4 \/ cr5 \/ cr7 \/ cr8
+Cross2 == cr5 \/ cr7 \/ cr8
 
 Next == RedToGreen \/ GreenToYellow \/ YellowToRed \/ ButPress \/ Cross
+           \/ Cross2
            \/ (* Disjunct to prevent deadlock on termination *)
               ((\A self \in ProcSet: pc[self] = "Done") /\ UNCHANGED vars)
 
-Spec == Init /\ [][Next]_vars
+Spec == /\ Init /\ [][Next]_vars
+        /\ WF_vars(Next)
 
 Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
@@ -281,8 +297,8 @@ pedliveness == /\ [] [NSPed="RED" => NSPed'="RED" \/ NSPed'="GREEN"]_vars   \* N
                /\ [] [EWPed="RED" => EWPed'="RED" \/ EWPed'="GREEN"]_vars \* EWPed eventually changes to Green
                /\ [] [EWPed="YELLOW" => EWPed'="YELLOW" \/ EWPed'="RED"]_vars \* EWPed eventually changes to Red
                /\ [] [EWPed="GREEN" => EWPed'="GREEN" \/ EWPed'="YELLOW"]_vars \* EWPed eventually changes to Yellow
-               /\ [] [NSBut=1 => NSBut=1 \/ NSPed="GREEN"]_vars
-               /\ [] [EWBut=1 => EWBut=1 \/ EWPed="GREEN"]_vars
+\*               /\ [] [NSBut=1 => NSBut'=1 \/ NSPed'="GREEN"]_vars
+\*               /\ [] [EWBut=1 => EWBut'=1 \/ EWPed'="GREEN"]_vars
 pedsafety == /\ ~(NSPed="GREEN" /\ EW="GREEN") \* Pedestrian cross and opposite traffic light should not both be green
              /\ ~(NSPed="YELLOW" /\ EW="GREEN") 
              /\ ~(EWPed="YELLOW" /\ NS="GREEN") 
@@ -299,7 +315,7 @@ bpc == [self \in ProcSet2 |-> CASE self = 0 -> pc[0]
 A == INSTANCE TrafficLight1 WITH NS<-NS, EW<-EW, redgreen_interval<-redgreen_interval, yellow_interval<-yellow_interval, pc<-bpc          
 =============================================================================
 \* Modification History
-\* Last modified Mon Nov 21 14:32:23 PST 2016 by Stella
+\* Last modified Tue Nov 22 12:53:24 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
