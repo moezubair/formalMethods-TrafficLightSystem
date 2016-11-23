@@ -7,62 +7,40 @@ variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSVeh=0;
     process (RedToGreen = 0) {  
            rtg1: await NS = "RED" /\ EW = "RED";
                 if(NSVeh=1){
-                    {NS:="GREEN"; EW:="RED"}
+                    {NS:="GREEN"; EW:="RED"};
+                    NSVeh:=0;
                 } 
                 else if(EWVeh=1){
-                    {NS:="RED"; EW:="GREEN"} 
+                    {NS:="RED"; EW:="GREEN"} ;
+                    EWVeh:=0;
                 } else if(NSVeh=0/\EWVeh=0){
-                    either{ NS:="GREEN"; EW:="RED"}
-                    or {NS:="RED"; EW:="GREEN"} 
+                    either{ NS:="GREEN"; EW:="RED"};
+                    or {NS:="RED"; EW:="GREEN"} ;
                 }
     }
     
-    process (GreenToYellow = 1) { 
-            gtx1: while (TRUE){
-\*                await (NS = "GREEN" /\ EWVeh=1) \/ (EW = "GREEN" /\ NSVeh=1);\* \/ (NSVeh=0/\EWVeh=0);
-                
-                gtx2: await (NS = "GREEN" /\ EWVeh=1) \/ (EW = "GREEN" /\ NSVeh=1) \/ (NSVeh=0/\EWVeh=0);
-                    if(NSVeh=0/\EWVeh=0){
-                        skip;
-                    } else 
-                    if(NS="GREEN" /\ EWVeh=1){
-                        NS:="YELLOW";
-                        NSVeh:=0;
-                    } else if(EW="GREEN" /\ NSVeh=1){
-                        EW:="YELLOW";
-                        EWVeh:=0;
-                    };
-                    }
-    }
-\*            gty1: await (NS = "GREEN" /\ EWVeh=1) \/ (EW = "GREEN" /\ NSVeh=1);
-\*            gty2: 
-\*            if(NS="GREEN"){
-\*                NS:="YELLOW";
-\*                NSVeh:=0;
-\*            } else if(EW="GREEN"){
-\*                EW:="YELLOW";
-\*                EWVeh:=0;
-\*            };
-\*    }
-\*    
-    process (YellowToRed = 2) {  
-            ytr1: await NS = "YELLOW" \/ EW = "YELLOW";
-            ytr2: while(yellow_interval # 0){
+     process (GreenToYellow = 1){
+        gty1:  await (NS = "GREEN" /\ EWVeh=1) \/ (EW = "GREEN" /\ NSVeh=1) \/ (NSVeh=0/\EWVeh=0);
+            if(EWVeh=1 /\ NS = "GREEN"){
+                NS:="YELLOW";        
+            } else if(EW = "GREEN" /\ NSVeh=1){
+                EW:="YELLOW";
+            };
+            gty2: while(yellow_interval # 0){
                 yellow_interval := yellow_interval-1;
             };
             if(NS="YELLOW"){
-                NS:="RED"
+                NS:="RED";
             } else if(EW="YELLOW"){
-                EW:="RED"
-            };
-            yellow_interval :=1;
+                EW:="RED";
+            }
+            
     }
-    
+       
      process (ButPress = 3){
         bp1: either if(NS="RED") NSVeh:=1
             or if(EW="RED")EWVeh:=1
-    }
-               
+    }            
 
 }
 
@@ -72,7 +50,7 @@ VARIABLES NS, EW, redgreen_interval, yellow_interval, NSVeh, EWVeh, pc
 
 vars == << NS, EW, redgreen_interval, yellow_interval, NSVeh, EWVeh, pc >>
 
-ProcSet == {0} \cup {1} \cup {2} \cup {3}
+ProcSet == {0} \cup {1} \cup {3}
 
 Init == (* Global variables *)
         /\ NS = "RED"
@@ -82,8 +60,7 @@ Init == (* Global variables *)
         /\ NSVeh = 0
         /\ EWVeh = 0
         /\ pc = [self \in ProcSet |-> CASE self = 0 -> "rtg1"
-                                        [] self = 1 -> "gtx1"
-                                        [] self = 2 -> "ytr1"
+                                        [] self = 1 -> "gty1"
                                         [] self = 3 -> "bp1"]
 
 rtg1 == /\ pc[0] = "rtg1"
@@ -91,9 +68,12 @@ rtg1 == /\ pc[0] = "rtg1"
         /\ IF NSVeh=1
               THEN /\ NS' = "GREEN"
                    /\ EW' = "RED"
+                   /\ NSVeh' = 0
+                   /\ EWVeh' = EWVeh
               ELSE /\ IF EWVeh=1
                          THEN /\ NS' = "RED"
                               /\ EW' = "GREEN"
+                              /\ EWVeh' = 0
                          ELSE /\ IF NSVeh=0/\EWVeh=0
                                     THEN /\ \/ /\ NS' = "GREEN"
                                                /\ EW' = "RED"
@@ -101,46 +81,30 @@ rtg1 == /\ pc[0] = "rtg1"
                                                /\ EW' = "GREEN"
                                     ELSE /\ TRUE
                                          /\ UNCHANGED << NS, EW >>
+                              /\ EWVeh' = EWVeh
+                   /\ NSVeh' = NSVeh
         /\ pc' = [pc EXCEPT ![0] = "Done"]
-        /\ UNCHANGED << redgreen_interval, yellow_interval, NSVeh, EWVeh >>
+        /\ UNCHANGED << redgreen_interval, yellow_interval >>
 
 RedToGreen == rtg1
 
-gtx1 == /\ pc[1] = "gtx1"
-        /\ pc' = [pc EXCEPT ![1] = "gtx2"]
-        /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval, NSVeh, 
-                        EWVeh >>
-
-gtx2 == /\ pc[1] = "gtx2"
+gty1 == /\ pc[1] = "gty1"
         /\ (NS = "GREEN" /\ EWVeh=1) \/ (EW = "GREEN" /\ NSVeh=1) \/ (NSVeh=0/\EWVeh=0)
-        /\ IF NSVeh=0/\EWVeh=0
-              THEN /\ TRUE
-                   /\ UNCHANGED << NS, EW, NSVeh, EWVeh >>
-              ELSE /\ IF NS="GREEN" /\ EWVeh=1
-                         THEN /\ NS' = "YELLOW"
-                              /\ NSVeh' = 0
-                              /\ UNCHANGED << EW, EWVeh >>
-                         ELSE /\ IF EW="GREEN" /\ NSVeh=1
-                                    THEN /\ EW' = "YELLOW"
-                                         /\ EWVeh' = 0
-                                    ELSE /\ TRUE
-                                         /\ UNCHANGED << EW, EWVeh >>
-                              /\ UNCHANGED << NS, NSVeh >>
-        /\ pc' = [pc EXCEPT ![1] = "gtx1"]
-        /\ UNCHANGED << redgreen_interval, yellow_interval >>
+        /\ IF EWVeh=1 /\ NS = "GREEN"
+              THEN /\ NS' = "YELLOW"
+                   /\ EW' = EW
+              ELSE /\ IF EW = "GREEN" /\ NSVeh=1
+                         THEN /\ EW' = "YELLOW"
+                         ELSE /\ TRUE
+                              /\ EW' = EW
+                   /\ NS' = NS
+        /\ pc' = [pc EXCEPT ![1] = "gty2"]
+        /\ UNCHANGED << redgreen_interval, yellow_interval, NSVeh, EWVeh >>
 
-GreenToYellow == gtx1 \/ gtx2
-
-ytr1 == /\ pc[2] = "ytr1"
-        /\ NS = "YELLOW" \/ EW = "YELLOW"
-        /\ pc' = [pc EXCEPT ![2] = "ytr2"]
-        /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval, NSVeh, 
-                        EWVeh >>
-
-ytr2 == /\ pc[2] = "ytr2"
+gty2 == /\ pc[1] = "gty2"
         /\ IF yellow_interval # 0
               THEN /\ yellow_interval' = yellow_interval-1
-                   /\ pc' = [pc EXCEPT ![2] = "ytr2"]
+                   /\ pc' = [pc EXCEPT ![1] = "gty2"]
                    /\ UNCHANGED << NS, EW >>
               ELSE /\ IF NS="YELLOW"
                          THEN /\ NS' = "RED"
@@ -150,11 +114,11 @@ ytr2 == /\ pc[2] = "ytr2"
                                     ELSE /\ TRUE
                                          /\ EW' = EW
                               /\ NS' = NS
-                   /\ yellow_interval' = 1
-                   /\ pc' = [pc EXCEPT ![2] = "Done"]
+                   /\ pc' = [pc EXCEPT ![1] = "Done"]
+                   /\ UNCHANGED yellow_interval
         /\ UNCHANGED << redgreen_interval, NSVeh, EWVeh >>
 
-YellowToRed == ytr1 \/ ytr2
+GreenToYellow == gty1 \/ gty2
 
 bp1 == /\ pc[3] = "bp1"
        /\ \/ /\ IF NS="RED"
@@ -172,9 +136,13 @@ bp1 == /\ pc[3] = "bp1"
 
 ButPress == bp1
 
-Next == RedToGreen \/ GreenToYellow \/ YellowToRed \/ ButPress
+Next == RedToGreen \/ GreenToYellow \/ ButPress
+           \/ (* Disjunct to prevent deadlock on termination *)
+              ((\A self \in ProcSet: pc[self] = "Done") /\ UNCHANGED vars)
 
 Spec == Init /\ [][Next]_vars
+
+Termination == <>(\A self \in ProcSet: pc[self] = "Done")
 
 \* END TRANSLATION
 
@@ -192,7 +160,7 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
 
 =============================================================================
 \* Modification History
-\* Last modified Tue Nov 22 16:23:57 PST 2016 by Stella
+\* Last modified Tue Nov 22 20:36:53 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
