@@ -2,7 +2,7 @@
 EXTENDS Naturals
 (***************************************************************************
 --algorithm trafficLight {
-variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSVeh=0; EWVeh=0;
+variables NS = "RED"; EW ="RED"; yellow_interval=1; NSVeh=0; EWVeh=0;
 
     process (RedToGreen = 0) {  
            rtg1: await NS = "RED" /\ EW = "RED";
@@ -37,7 +37,7 @@ variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSVeh=0;
             
     }
        
-     process (ButPress = 3){
+     process (ButPress = 2){
         bp1: either if(NS="RED") NSVeh:=1
             or if(EW="RED")EWVeh:=1
     }            
@@ -46,22 +46,21 @@ variables NS = "RED"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSVeh=0;
 
 ****************************************************************************)
 \* BEGIN TRANSLATION
-VARIABLES NS, EW, redgreen_interval, yellow_interval, NSVeh, EWVeh, pc
+VARIABLES NS, EW, yellow_interval, NSVeh, EWVeh, pc
 
-vars == << NS, EW, redgreen_interval, yellow_interval, NSVeh, EWVeh, pc >>
+vars == << NS, EW, yellow_interval, NSVeh, EWVeh, pc >>
 
-ProcSet == {0} \cup {1} \cup {3}
+ProcSet == {0} \cup {1} \cup {2}
 
 Init == (* Global variables *)
         /\ NS = "RED"
         /\ EW = "RED"
-        /\ redgreen_interval = 5
         /\ yellow_interval = 1
         /\ NSVeh = 0
         /\ EWVeh = 0
         /\ pc = [self \in ProcSet |-> CASE self = 0 -> "rtg1"
                                         [] self = 1 -> "gty1"
-                                        [] self = 3 -> "bp1"]
+                                        [] self = 2 -> "bp1"]
 
 rtg1 == /\ pc[0] = "rtg1"
         /\ NS = "RED" /\ EW = "RED"
@@ -84,7 +83,7 @@ rtg1 == /\ pc[0] = "rtg1"
                               /\ EWVeh' = EWVeh
                    /\ NSVeh' = NSVeh
         /\ pc' = [pc EXCEPT ![0] = "Done"]
-        /\ UNCHANGED << redgreen_interval, yellow_interval >>
+        /\ UNCHANGED yellow_interval
 
 RedToGreen == rtg1
 
@@ -99,7 +98,7 @@ gty1 == /\ pc[1] = "gty1"
                               /\ EW' = EW
                    /\ NS' = NS
         /\ pc' = [pc EXCEPT ![1] = "gty2"]
-        /\ UNCHANGED << redgreen_interval, yellow_interval, NSVeh, EWVeh >>
+        /\ UNCHANGED << yellow_interval, NSVeh, EWVeh >>
 
 gty2 == /\ pc[1] = "gty2"
         /\ IF yellow_interval # 0
@@ -116,11 +115,11 @@ gty2 == /\ pc[1] = "gty2"
                               /\ NS' = NS
                    /\ pc' = [pc EXCEPT ![1] = "Done"]
                    /\ UNCHANGED yellow_interval
-        /\ UNCHANGED << redgreen_interval, NSVeh, EWVeh >>
+        /\ UNCHANGED << NSVeh, EWVeh >>
 
 GreenToYellow == gty1 \/ gty2
 
-bp1 == /\ pc[3] = "bp1"
+bp1 == /\ pc[2] = "bp1"
        /\ \/ /\ IF NS="RED"
                    THEN /\ NSVeh' = 1
                    ELSE /\ TRUE
@@ -131,8 +130,8 @@ bp1 == /\ pc[3] = "bp1"
                    ELSE /\ TRUE
                         /\ EWVeh' = EWVeh
              /\ NSVeh' = NSVeh
-       /\ pc' = [pc EXCEPT ![3] = "Done"]
-       /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval >>
+       /\ pc' = [pc EXCEPT ![2] = "Done"]
+       /\ UNCHANGED << NS, EW, yellow_interval >>
 
 ButPress == bp1
 
@@ -158,9 +157,22 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
           /\ ~(NS="GREEN" /\ EW="YELLOW") \* NS should not turn green until ew is red      
           
 
+\*ProcSet2 == {0} \cup {1} \cup {2}
+\*2 4 5 = 
+ProcSet2 == {0} \cup {1} \cup {2} \cup {3} \cup {4} \cup {5}
+bpc == [self \in ProcSet2 |-> CASE self = 0 -> pc[0]
+            [] self = 1 -> pc[1]
+            [] self = 2 -> pc[1]
+            [] self = 3 -> pc[2]
+            [] self = 4 -> pc[1]
+            [] self = 5 -> pc[1]]
+
+A == INSTANCE TrafficLight2 WITH NSPed<-NS, EWPed<-EW, yellow_interval_ped<-yellow_interval,NSBut<-NSVeh,EWBut<-EWVeh, redgreen_interval_ped<-4,redgreen_interval<-5, pc<-pc   
+
+
 =============================================================================
 \* Modification History
-\* Last modified Tue Nov 22 20:36:53 PST 2016 by Stella
+\* Last modified Tue Nov 22 20:47:40 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
