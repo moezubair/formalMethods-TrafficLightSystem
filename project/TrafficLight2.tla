@@ -2,7 +2,7 @@
 EXTENDS Naturals
 (***************************************************************************
 --fair algorithm trafficLight {
-variables NS = "GREEN"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;redgreen_interval_ped=4;yellow_interval_ped=1
+variables NS = "GREEN"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;redgreen_interval_ped=2;
 
     process (GreenToYellow = 1) { 
         
@@ -65,10 +65,10 @@ variables NS = "GREEN"; EW ="RED";redgreen_interval=5; yellow_interval=1; NSPed=
 ****************************************************************************)
 \* BEGIN TRANSLATION
 VARIABLES NS, EW, redgreen_interval, yellow_interval, NSPed, EWPed, NSBut, 
-          EWBut, redgreen_interval_ped, yellow_interval_ped, pc
+          EWBut, redgreen_interval_ped, pc
 
 vars == << NS, EW, redgreen_interval, yellow_interval, NSPed, EWPed, NSBut, 
-           EWBut, redgreen_interval_ped, yellow_interval_ped, pc >>
+           EWBut, redgreen_interval_ped, pc >>
 
 ProcSet == {1} \cup {2}
 
@@ -81,8 +81,7 @@ Init == (* Global variables *)
         /\ EWPed = "RED"
         /\ NSBut = 0
         /\ EWBut = 0
-        /\ redgreen_interval_ped = 4
-        /\ yellow_interval_ped = 1
+        /\ redgreen_interval_ped = 2
         /\ pc = [self \in ProcSet |-> CASE self = 1 -> "gty1"
                                         [] self = 2 -> "ytr1"]
 
@@ -90,8 +89,7 @@ gty1 == /\ pc[1] = "gty1"
         /\ NS = "GREEN" \/ EW = "GREEN"
         /\ pc' = [pc EXCEPT ![1] = "gty2"]
         /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval, NSPed, 
-                        EWPed, NSBut, EWBut, redgreen_interval_ped, 
-                        yellow_interval_ped >>
+                        EWPed, NSBut, EWBut, redgreen_interval_ped >>
 
 gty2 == /\ pc[1] = "gty2"
         /\ IF redgreen_interval # 0
@@ -120,8 +118,7 @@ gty2 == /\ pc[1] = "gty2"
                    /\ redgreen_interval' = 5
                    /\ pc' = [pc EXCEPT ![1] = "Done"]
                    /\ UNCHANGED << NSPed, EWPed >>
-        /\ UNCHANGED << yellow_interval, NSBut, EWBut, redgreen_interval_ped, 
-                        yellow_interval_ped >>
+        /\ UNCHANGED << yellow_interval, NSBut, EWBut, redgreen_interval_ped >>
 
 GreenToYellow == gty1 \/ gty2
 
@@ -129,8 +126,7 @@ ytr1 == /\ pc[2] = "ytr1"
         /\ NS = "YELLOW" \/ EW = "YELLOW"
         /\ pc' = [pc EXCEPT ![2] = "ytr2"]
         /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval, NSPed, 
-                        EWPed, NSBut, EWBut, redgreen_interval_ped, 
-                        yellow_interval_ped >>
+                        EWPed, NSBut, EWBut, redgreen_interval_ped >>
 
 ytr2 == /\ pc[2] = "ytr2"
         /\ IF yellow_interval # 0
@@ -165,8 +161,7 @@ ytr2 == /\ pc[2] = "ytr2"
                               /\ NSBut' = NSBut
                    /\ pc' = [pc EXCEPT ![2] = "ytr3"]
                    /\ UNCHANGED yellow_interval
-        /\ UNCHANGED << redgreen_interval, redgreen_interval_ped, 
-                        yellow_interval_ped >>
+        /\ UNCHANGED << redgreen_interval, redgreen_interval_ped >>
 
 ytr3 == /\ pc[2] = "ytr3"
         /\ IF NSBut=1 /\ NS = "GREEN" /\ EW = "RED" /\ NSPed="RED"
@@ -181,8 +176,7 @@ ytr3 == /\ pc[2] = "ytr3"
                    /\ UNCHANGED << NSPed, NSBut >>
         /\ yellow_interval' = 1
         /\ pc' = [pc EXCEPT ![2] = "Done"]
-        /\ UNCHANGED << NS, EW, redgreen_interval, redgreen_interval_ped, 
-                        yellow_interval_ped >>
+        /\ UNCHANGED << NS, EW, redgreen_interval, redgreen_interval_ped >>
 
 YellowToRedGreen == ytr1 \/ ytr2 \/ ytr3
 
@@ -227,7 +221,7 @@ pedsafety == /\ ~(NSPed="GREEN" /\ EW="GREEN") \* Pedestrian cross and opposite 
 A == INSTANCE TrafficLight1 WITH NS<-NS, EW<-EW, redgreen_interval<-redgreen_interval, yellow_interval<-yellow_interval, pc<-pc          
 =============================================================================
 \* Modification History
-\* Last modified Wed Nov 23 17:14:39 PST 2016 by Stella
+\* Last modified Thu Nov 24 12:15:46 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
