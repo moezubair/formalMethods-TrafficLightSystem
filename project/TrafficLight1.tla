@@ -1,116 +1,103 @@
 --------------------------- MODULE TrafficLight1 ---------------------------
 EXTENDS Naturals
 (***************************************************************************
---algorithm trafficLight {
-variables NS = "GREEN"; EW ="RED";redgreen_interval=5; yellow_interval=1;
+--fair algorithm trafficLight {
+variables NS = "RED"; EW ="RED";
     
-    process (GreenToYellow = 1) { 
-            gty1: await NS = "GREEN" \/ EW = "GREEN";
-            gty2: while (redgreen_interval # 0){
-                redgreen_interval := redgreen_interval -1;
-            };
-            if(NS="GREEN"){
-                NS:="YELLOW"
-            } else if(EW="GREEN"){
-                EW:="YELLOW"
-            };
-            redgreen_interval := 5;
+    fair process (NSTraffic = 0){
+        NSt1: while(TRUE){
+            await EW="RED";
+\*            either{
+            NS:="GREEN";
+            NSt2: skip;
+            NS:="YELLOW";
+            NSt3: skip;
+            NS:="RED"
+\*            }
+\*            or{
+\*            NSstutter: skip;
+\*            }
+        }
     }
     
-    process (YellowToRed = 2) {  
-            ytr1: await NS = "YELLOW" \/ EW = "YELLOW";
-            ytr2: while(yellow_interval # 0){
-                yellow_interval := yellow_interval-1;
-            };
-            if(NS="YELLOW"){
-                NS:="RED";
-                EW:="GREEN";
-            } else if(EW="YELLOW"){
-                EW:="RED";
-                NS:="GREEN";
-            };
-            ytr3: yellow_interval :=1;
-    }
-               
+    fair process (EWTraffic = 1){
+        EWt1: while(TRUE){
+            await EW="RED";
+\*            either{
+            EW:="GREEN";
+            EWt2: skip;
+            EW:="YELLOW";
+            EWt3: skip;
+            EW:="RED"
+\*            }
+\*            or{
+\*            EWstutter: skip;
+\*            }
+        }
+    }       
 
 }
 
 ****************************************************************************)
 \* BEGIN TRANSLATION
-VARIABLES NS, EW, redgreen_interval, yellow_interval, pc
+VARIABLES NS, EW, pc
 
-vars == << NS, EW, redgreen_interval, yellow_interval, pc >>
+vars == << NS, EW, pc >>
 
-ProcSet == {1} \cup {2}
+ProcSet == {0} \cup {1}
 
 Init == (* Global variables *)
-        /\ NS = "GREEN"
+        /\ NS = "RED"
         /\ EW = "RED"
-        /\ redgreen_interval = 5
-        /\ yellow_interval = 1
-        /\ pc = [self \in ProcSet |-> CASE self = 1 -> "gty1"
-                                        [] self = 2 -> "ytr1"]
+        /\ pc = [self \in ProcSet |-> CASE self = 0 -> "NSt1"
+                                        [] self = 1 -> "EWt1"]
 
-gty1 == /\ pc[1] = "gty1"
-        /\ NS = "GREEN" \/ EW = "GREEN"
-        /\ pc' = [pc EXCEPT ![1] = "gty2"]
-        /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval >>
+NSt1 == /\ pc[0] = "NSt1"
+        /\ EW="RED"
+        /\ NS' = "GREEN"
+        /\ pc' = [pc EXCEPT ![0] = "NSt2"]
+        /\ EW' = EW
 
-gty2 == /\ pc[1] = "gty2"
-        /\ IF redgreen_interval # 0
-              THEN /\ redgreen_interval' = redgreen_interval -1
-                   /\ pc' = [pc EXCEPT ![1] = "gty2"]
-                   /\ UNCHANGED << NS, EW >>
-              ELSE /\ IF NS="GREEN"
-                         THEN /\ NS' = "YELLOW"
-                              /\ EW' = EW
-                         ELSE /\ IF EW="GREEN"
-                                    THEN /\ EW' = "YELLOW"
-                                    ELSE /\ TRUE
-                                         /\ EW' = EW
-                              /\ NS' = NS
-                   /\ redgreen_interval' = 5
-                   /\ pc' = [pc EXCEPT ![1] = "Done"]
-        /\ UNCHANGED yellow_interval
+NSt2 == /\ pc[0] = "NSt2"
+        /\ TRUE
+        /\ NS' = "YELLOW"
+        /\ pc' = [pc EXCEPT ![0] = "NSt3"]
+        /\ EW' = EW
 
-GreenToYellow == gty1 \/ gty2
+NSt3 == /\ pc[0] = "NSt3"
+        /\ TRUE
+        /\ NS' = "RED"
+        /\ pc' = [pc EXCEPT ![0] = "NSt1"]
+        /\ EW' = EW
 
-ytr1 == /\ pc[2] = "ytr1"
-        /\ NS = "YELLOW" \/ EW = "YELLOW"
-        /\ pc' = [pc EXCEPT ![2] = "ytr2"]
-        /\ UNCHANGED << NS, EW, redgreen_interval, yellow_interval >>
+NSTraffic == NSt1 \/ NSt2 \/ NSt3
 
-ytr2 == /\ pc[2] = "ytr2"
-        /\ IF yellow_interval # 0
-              THEN /\ yellow_interval' = yellow_interval-1
-                   /\ pc' = [pc EXCEPT ![2] = "ytr2"]
-                   /\ UNCHANGED << NS, EW >>
-              ELSE /\ IF NS="YELLOW"
-                         THEN /\ NS' = "RED"
-                              /\ EW' = "GREEN"
-                         ELSE /\ IF EW="YELLOW"
-                                    THEN /\ EW' = "RED"
-                                         /\ NS' = "GREEN"
-                                    ELSE /\ TRUE
-                                         /\ UNCHANGED << NS, EW >>
-                   /\ pc' = [pc EXCEPT ![2] = "ytr3"]
-                   /\ UNCHANGED yellow_interval
-        /\ UNCHANGED redgreen_interval
+EWt1 == /\ pc[1] = "EWt1"
+        /\ EW="RED"
+        /\ EW' = "GREEN"
+        /\ pc' = [pc EXCEPT ![1] = "EWt2"]
+        /\ NS' = NS
 
-ytr3 == /\ pc[2] = "ytr3"
-        /\ yellow_interval' = 1
-        /\ pc' = [pc EXCEPT ![2] = "Done"]
-        /\ UNCHANGED << NS, EW, redgreen_interval >>
+EWt2 == /\ pc[1] = "EWt2"
+        /\ TRUE
+        /\ EW' = "YELLOW"
+        /\ pc' = [pc EXCEPT ![1] = "EWt3"]
+        /\ NS' = NS
 
-YellowToRed == ytr1 \/ ytr2 \/ ytr3
+EWt3 == /\ pc[1] = "EWt3"
+        /\ TRUE
+        /\ EW' = "RED"
+        /\ pc' = [pc EXCEPT ![1] = "EWt1"]
+        /\ NS' = NS
 
-Next == GreenToYellow \/ YellowToRed
-           \/ (* Disjunct to prevent deadlock on termination *)
-              ((\A self \in ProcSet: pc[self] = "Done") /\ UNCHANGED vars)
+EWTraffic == EWt1 \/ EWt2 \/ EWt3
 
-Spec == Init /\ [][Next]_vars
+Next == NSTraffic \/ EWTraffic
 
-Termination == <>(\A self \in ProcSet: pc[self] = "Done")
+Spec == /\ Init /\ [][Next]_vars
+        /\ WF_vars(Next)
+        /\ WF_vars(NSTraffic)
+        /\ WF_vars(EWTraffic)
 
 \* END TRANSLATION
 
@@ -128,7 +115,7 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
 
 =============================================================================
 \* Modification History
-\* Last modified Wed Nov 23 17:14:51 PST 2016 by Stella
+\* Last modified Fri Nov 25 12:04:39 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
