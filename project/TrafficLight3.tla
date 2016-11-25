@@ -1,249 +1,255 @@
 --------------------------- MODULE TrafficLight3 ---------------------------
 EXTENDS Naturals
 (***************************************************************************
---algorithm trafficLight {
-variables NS = "GREEN"; EW ="RED"; yellow_interval=1; NSVeh=0; EWVeh=0; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;
+--fair algorithm trafficLight {
+variables NS = "RED"; EW ="RED"; NSVeh=0; EWVeh=0; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0; 
 
-
-    process (GreenToYellow = 1) { 
-        
-        gty1: await NS = "GREEN" \/ EW = "GREEN" \/ (NSVeh=0/\EWVeh=0);
-        
-        if(NS="RED"){
-            either NSVeh:=1
-            or NSVeh:=0;
-        } else if(EW="RED"){
-            either EWVeh:=1;
-            or EWVeh:=0;
-        };
-        
-        gty2: if(NS="GREEN" /\ EWVeh=1){
-            NS:="YELLOW"; 
-\*            EWVeh:=0;
-        } else if(EW="GREEN" /\ NSVeh=1){
-            EW:="YELLOW";
-\*            NSVeh:=0;
-        } else if(NS = "RED" /\ EW ="RED"){
-            if(NSVeh=1){
-                NS:="GREEN"
-            } else{
-                EW:="GREEN"
-            }
-        };
-        if(NSPed="GREEN" /\ NS="YELLOW"){
-            NSPed:="YELLOW"; 
-        } else if(EWPed="GREEN" /\ EW="YELLOW"){
-            EWPed:="YELLOW";
-        };
-    }
-    
-    process (YellowToRedGreen = 2) {  
-        ytr1: await NS = "YELLOW" \/ EW = "YELLOW";\* \/ (NSVeh=0/\EWVeh=0 /\ pc[1]="Done");
-        ytr2: while(yellow_interval # 0){
-            yellow_interval := yellow_interval-1;
-        };
-        if(NSPed="YELLOW"){
-            NSPed:="RED"
-        } else if(EWPed="YELLOW"){
-            EWPed:="RED"
-        };
-        if(NS="YELLOW"){
-            NS:="RED";
-            EW:="GREEN";
-        } else if(EW="YELLOW"){
-            EW:="RED";
+ fair process (NSTraffic = 0){
+        NSt1: while(TRUE){
+            await NSVeh=1 /\ EW="RED" /\ EWPed="RED" /\ EWBut=0  /\ (NSBut=0 \/ NSPed="GREEN");
             NS:="GREEN";
-        };
-        if(NS="GREEN"){
-            either NSBut:=1
-            or NSBut:=0;
-        } else if(EW="GREEN"){
-            either EWBut:=1;
-            or EWBut:=0;
-        };
-        ytr3: if(NSBut=1 /\ NS = "GREEN" /\ EW = "RED" /\ NSPed="RED"){
-            NSPed:="GREEN";
-            NSBut:=0;
-        } else if (EWBut=1 /\ NS = "RED" /\ EW = "GREEN" /\ EWPed="RED"){
-            EWPed:="GREEN";
-            EWBut:=0;
-        };
-        yellow_interval :=1;
+            NSt2: skip;
+            await NSPed="RED" \/ NSPed="YELLOW";
+            NS:="YELLOW";
+            NSt3: skip;
+            await NSPed="RED";
+            NS:="RED";
+        }
     }
     
+    fair process (EWTraffic = 1){
+        EWt1: while(TRUE){
+            await EWVeh=1 /\ NS="RED" /\ NSPed="RED" /\ NSBut=0 /\ (EWBut=0 \/ EWPed="GREEN");
+            EW:="GREEN";
+            EWt2: skip;
+            await EWPed="RED" \/ EWPed="YELLOW";
+            EW:="YELLOW";
+            EWt3: skip;
+            await EWPed="RED";
+            EW:="RED";
+        }
+    }   
     
-\*    process (RedToGreen = 2) {  
-\*           ytr1: await NS = "RED" /\ EW = "RED";
-\*           ytr2: if(NSVeh=1){
-\*                    {NS:="GREEN"; EW:="RED"};
-\*                    NSVeh:=0;
-\*                } 
-\*                else if(EWVeh=1){
-\*                    {NS:="RED"; EW:="GREEN"} ;
-\*                    EWVeh:=0;
-\*                } else if(NSVeh=0/\EWVeh=0){
-\*                    either{ NS:="GREEN"; EW:="RED"};
-\*                    or {NS:="RED"; EW:="GREEN"} ;
-\*                };
-\*           ytr3: yellow_interval:=1;
-\*    }
-\*    
-\*     process (GreenToYellow = 1){
-\*        gty1:  await (NS = "GREEN" /\ EWVeh=1) \/ (EW = "GREEN" /\ NSVeh=1) \/ (NSVeh=0/\EWVeh=0);
-\*            if(EWVeh=1 /\ NS = "GREEN"){
-\*                NS:="YELLOW";        
-\*            } else if(EW = "GREEN" /\ NSVeh=1){
-\*                EW:="YELLOW";
-\*            };
-\*            gty2: while(yellow_interval # 0){
-\*                yellow_interval := yellow_interval-1;
-\*            };
-\*            if(NS="YELLOW"){
-\*                NS:="RED";
-\*            } else if(EW="YELLOW"){
-\*                EW:="RED";
-\*            }
-\*            
-\*    }
-\*       
-\*     process (ButPress = 3){
-\*        bp1: either if(NS="RED") NSVeh:=1
-\*            or if(EW="RED")EWVeh:=1
-\*    }            
+    fair process (NSPedTraffic = 2){
+        NSPedt1: while(TRUE){
+            await EW="RED" /\ NS="RED" /\ NSBut=1;
+            NSPed:="GREEN";
+            NSPedt2: skip;
+            NSPed:="YELLOW";
+            NSPedt3: skip;
+            NSPed:="RED";
+            NSBut:=0
+        }
+    }
+    
+    fair process (EWPedTraffic = 3){
+        EWPedt1: while(TRUE){
+            await NS="RED" /\ EW="RED" /\ EWBut=1;
+            EWPed:="GREEN";
+            EWPedt2: skip;
+            EWPed:="YELLOW";
+            EWPedt3: skip;
+            EWPed:="RED";
+            EWBut:=0
+        }
+    }   
+    
+    fair process (NSButton = 4){
+        NSb1: while(TRUE){
+            await NSBut=0;
+                either NSBut:=1
+                or NSBut:=0  
+        }
+    }
+    
+    fair process (EWButton = 5){
+        EWb1: while(TRUE){
+            await EWBut=0;
+                either EWBut:=1
+                or EWBut:=0
+        }
+    }
+    
+    fair process (NSVehicle = 6){
+        NSv1: while(TRUE){
+            await NSVeh=0;
+                either NSVeh:=1
+                or NSVeh:=0  
+        }
+    }
+    
+    fair process (EWVehicle = 7){
+        EWv1: while(TRUE){
+            await EWVeh=0;
+                either EWVeh:=1
+                or EWVeh:=0
+        }
+    }
+
 
 }
 
 ****************************************************************************)
 \* BEGIN TRANSLATION
-VARIABLES NS, EW, yellow_interval, NSVeh, EWVeh, NSPed, EWPed, NSBut, EWBut, 
-          pc
+VARIABLES NS, EW, NSVeh, EWVeh, NSPed, EWPed, NSBut, EWBut, pc
 
-vars == << NS, EW, yellow_interval, NSVeh, EWVeh, NSPed, EWPed, NSBut, EWBut, 
-           pc >>
+vars == << NS, EW, NSVeh, EWVeh, NSPed, EWPed, NSBut, EWBut, pc >>
 
-ProcSet == {1} \cup {2}
+ProcSet == {0} \cup {1} \cup {2} \cup {3} \cup {4} \cup {5} \cup {6} \cup {7}
 
 Init == (* Global variables *)
-        /\ NS = "GREEN"
+        /\ NS = "RED"
         /\ EW = "RED"
-        /\ yellow_interval = 1
         /\ NSVeh = 0
         /\ EWVeh = 0
         /\ NSPed = "RED"
         /\ EWPed = "RED"
         /\ NSBut = 0
         /\ EWBut = 0
-        /\ pc = [self \in ProcSet |-> CASE self = 1 -> "gty1"
-                                        [] self = 2 -> "ytr1"]
+        /\ pc = [self \in ProcSet |-> CASE self = 0 -> "NSt1"
+                                        [] self = 1 -> "EWt1"
+                                        [] self = 2 -> "NSPedt1"
+                                        [] self = 3 -> "EWPedt1"
+                                        [] self = 4 -> "NSb1"
+                                        [] self = 5 -> "EWb1"
+                                        [] self = 6 -> "NSv1"
+                                        [] self = 7 -> "EWv1"]
 
-gty1 == /\ pc[1] = "gty1"
-        /\ NS = "GREEN" \/ EW = "GREEN" \/ (NSVeh=0/\EWVeh=0)
-        /\ IF NS="RED"
-              THEN /\ \/ /\ NSVeh' = 1
-                      \/ /\ NSVeh' = 0
-                   /\ EWVeh' = EWVeh
-              ELSE /\ IF EW="RED"
-                         THEN /\ \/ /\ EWVeh' = 1
-                                 \/ /\ EWVeh' = 0
-                         ELSE /\ TRUE
-                              /\ EWVeh' = EWVeh
-                   /\ NSVeh' = NSVeh
-        /\ pc' = [pc EXCEPT ![1] = "gty2"]
-        /\ UNCHANGED << NS, EW, yellow_interval, NSPed, EWPed, NSBut, EWBut >>
+NSt1 == /\ pc[0] = "NSt1"
+        /\ NSVeh=1 /\ EW="RED" /\ EWPed="RED" /\ EWBut=0  /\ (NSBut=0 \/ NSPed="GREEN")
+        /\ NS' = "GREEN"
+        /\ pc' = [pc EXCEPT ![0] = "NSt2"]
+        /\ UNCHANGED << EW, NSVeh, EWVeh, NSPed, EWPed, NSBut, EWBut >>
 
-gty2 == /\ pc[1] = "gty2"
-        /\ IF NS="GREEN" /\ EWVeh=1
-              THEN /\ NS' = "YELLOW"
-                   /\ EW' = EW
-              ELSE /\ IF EW="GREEN" /\ NSVeh=1
-                         THEN /\ EW' = "YELLOW"
-                              /\ NS' = NS
-                         ELSE /\ IF NS = "RED" /\ EW ="RED"
-                                    THEN /\ IF NSVeh=1
-                                               THEN /\ NS' = "GREEN"
-                                                    /\ EW' = EW
-                                               ELSE /\ EW' = "GREEN"
-                                                    /\ NS' = NS
-                                    ELSE /\ TRUE
-                                         /\ UNCHANGED << NS, EW >>
-        /\ IF NSPed="GREEN" /\ NS'="YELLOW"
-              THEN /\ NSPed' = "YELLOW"
-                   /\ EWPed' = EWPed
-              ELSE /\ IF EWPed="GREEN" /\ EW'="YELLOW"
-                         THEN /\ EWPed' = "YELLOW"
-                         ELSE /\ TRUE
-                              /\ EWPed' = EWPed
-                   /\ NSPed' = NSPed
-        /\ pc' = [pc EXCEPT ![1] = "Done"]
-        /\ UNCHANGED << yellow_interval, NSVeh, EWVeh, NSBut, EWBut >>
+NSt2 == /\ pc[0] = "NSt2"
+        /\ TRUE
+        /\ NSPed="RED" \/ NSPed="YELLOW"
+        /\ NS' = "YELLOW"
+        /\ pc' = [pc EXCEPT ![0] = "NSt3"]
+        /\ UNCHANGED << EW, NSVeh, EWVeh, NSPed, EWPed, NSBut, EWBut >>
 
-GreenToYellow == gty1 \/ gty2
+NSt3 == /\ pc[0] = "NSt3"
+        /\ TRUE
+        /\ NSPed="RED"
+        /\ NS' = "RED"
+        /\ pc' = [pc EXCEPT ![0] = "NSt1"]
+        /\ UNCHANGED << EW, NSVeh, EWVeh, NSPed, EWPed, NSBut, EWBut >>
 
-ytr1 == /\ pc[2] = "ytr1"
-        /\ NS = "YELLOW" \/ EW = "YELLOW"
-        /\ pc' = [pc EXCEPT ![2] = "ytr2"]
-        /\ UNCHANGED << NS, EW, yellow_interval, NSVeh, EWVeh, NSPed, EWPed, 
-                        NSBut, EWBut >>
+NSTraffic == NSt1 \/ NSt2 \/ NSt3
 
-ytr2 == /\ pc[2] = "ytr2"
-        /\ IF yellow_interval # 0
-              THEN /\ yellow_interval' = yellow_interval-1
-                   /\ pc' = [pc EXCEPT ![2] = "ytr2"]
-                   /\ UNCHANGED << NS, EW, NSPed, EWPed, NSBut, EWBut >>
-              ELSE /\ IF NSPed="YELLOW"
-                         THEN /\ NSPed' = "RED"
-                              /\ EWPed' = EWPed
-                         ELSE /\ IF EWPed="YELLOW"
-                                    THEN /\ EWPed' = "RED"
-                                    ELSE /\ TRUE
-                                         /\ EWPed' = EWPed
-                              /\ NSPed' = NSPed
-                   /\ IF NS="YELLOW"
-                         THEN /\ NS' = "RED"
-                              /\ EW' = "GREEN"
-                         ELSE /\ IF EW="YELLOW"
-                                    THEN /\ EW' = "RED"
-                                         /\ NS' = "GREEN"
-                                    ELSE /\ TRUE
-                                         /\ UNCHANGED << NS, EW >>
-                   /\ IF NS'="GREEN"
-                         THEN /\ \/ /\ NSBut' = 1
-                                 \/ /\ NSBut' = 0
-                              /\ EWBut' = EWBut
-                         ELSE /\ IF EW'="GREEN"
-                                    THEN /\ \/ /\ EWBut' = 1
-                                            \/ /\ EWBut' = 0
-                                    ELSE /\ TRUE
-                                         /\ EWBut' = EWBut
-                              /\ NSBut' = NSBut
-                   /\ pc' = [pc EXCEPT ![2] = "ytr3"]
-                   /\ UNCHANGED yellow_interval
-        /\ UNCHANGED << NSVeh, EWVeh >>
+EWt1 == /\ pc[1] = "EWt1"
+        /\ EWVeh=1 /\ NS="RED" /\ NSPed="RED" /\ NSBut=0 /\ (EWBut=0 \/ EWPed="GREEN")
+        /\ EW' = "GREEN"
+        /\ pc' = [pc EXCEPT ![1] = "EWt2"]
+        /\ UNCHANGED << NS, NSVeh, EWVeh, NSPed, EWPed, NSBut, EWBut >>
 
-ytr3 == /\ pc[2] = "ytr3"
-        /\ IF NSBut=1 /\ NS = "GREEN" /\ EW = "RED" /\ NSPed="RED"
-              THEN /\ NSPed' = "GREEN"
-                   /\ NSBut' = 0
-                   /\ UNCHANGED << EWPed, EWBut >>
-              ELSE /\ IF EWBut=1 /\ NS = "RED" /\ EW = "GREEN" /\ EWPed="RED"
-                         THEN /\ EWPed' = "GREEN"
-                              /\ EWBut' = 0
-                         ELSE /\ TRUE
-                              /\ UNCHANGED << EWPed, EWBut >>
-                   /\ UNCHANGED << NSPed, NSBut >>
-        /\ yellow_interval' = 1
-        /\ pc' = [pc EXCEPT ![2] = "Done"]
-        /\ UNCHANGED << NS, EW, NSVeh, EWVeh >>
+EWt2 == /\ pc[1] = "EWt2"
+        /\ TRUE
+        /\ EWPed="RED" \/ EWPed="YELLOW"
+        /\ EW' = "YELLOW"
+        /\ pc' = [pc EXCEPT ![1] = "EWt3"]
+        /\ UNCHANGED << NS, NSVeh, EWVeh, NSPed, EWPed, NSBut, EWBut >>
 
-YellowToRedGreen == ytr1 \/ ytr2 \/ ytr3
+EWt3 == /\ pc[1] = "EWt3"
+        /\ TRUE
+        /\ EWPed="RED"
+        /\ EW' = "RED"
+        /\ pc' = [pc EXCEPT ![1] = "EWt1"]
+        /\ UNCHANGED << NS, NSVeh, EWVeh, NSPed, EWPed, NSBut, EWBut >>
 
-Next == GreenToYellow \/ YellowToRedGreen
-           \/ (* Disjunct to prevent deadlock on termination *)
-              ((\A self \in ProcSet: pc[self] = "Done") /\ UNCHANGED vars)
+EWTraffic == EWt1 \/ EWt2 \/ EWt3
 
-Spec == Init /\ [][Next]_vars
+NSPedt1 == /\ pc[2] = "NSPedt1"
+           /\ EW="RED" /\ NS="RED" /\ NSBut=1
+           /\ NSPed' = "GREEN"
+           /\ pc' = [pc EXCEPT ![2] = "NSPedt2"]
+           /\ UNCHANGED << NS, EW, NSVeh, EWVeh, EWPed, NSBut, EWBut >>
 
-Termination == <>(\A self \in ProcSet: pc[self] = "Done")
+NSPedt2 == /\ pc[2] = "NSPedt2"
+           /\ TRUE
+           /\ NSPed' = "YELLOW"
+           /\ pc' = [pc EXCEPT ![2] = "NSPedt3"]
+           /\ UNCHANGED << NS, EW, NSVeh, EWVeh, EWPed, NSBut, EWBut >>
+
+NSPedt3 == /\ pc[2] = "NSPedt3"
+           /\ TRUE
+           /\ NSPed' = "RED"
+           /\ NSBut' = 0
+           /\ pc' = [pc EXCEPT ![2] = "NSPedt1"]
+           /\ UNCHANGED << NS, EW, NSVeh, EWVeh, EWPed, EWBut >>
+
+NSPedTraffic == NSPedt1 \/ NSPedt2 \/ NSPedt3
+
+EWPedt1 == /\ pc[3] = "EWPedt1"
+           /\ NS="RED" /\ EW="RED" /\ EWBut=1
+           /\ EWPed' = "GREEN"
+           /\ pc' = [pc EXCEPT ![3] = "EWPedt2"]
+           /\ UNCHANGED << NS, EW, NSVeh, EWVeh, NSPed, NSBut, EWBut >>
+
+EWPedt2 == /\ pc[3] = "EWPedt2"
+           /\ TRUE
+           /\ EWPed' = "YELLOW"
+           /\ pc' = [pc EXCEPT ![3] = "EWPedt3"]
+           /\ UNCHANGED << NS, EW, NSVeh, EWVeh, NSPed, NSBut, EWBut >>
+
+EWPedt3 == /\ pc[3] = "EWPedt3"
+           /\ TRUE
+           /\ EWPed' = "RED"
+           /\ EWBut' = 0
+           /\ pc' = [pc EXCEPT ![3] = "EWPedt1"]
+           /\ UNCHANGED << NS, EW, NSVeh, EWVeh, NSPed, NSBut >>
+
+EWPedTraffic == EWPedt1 \/ EWPedt2 \/ EWPedt3
+
+NSb1 == /\ pc[4] = "NSb1"
+        /\ NSBut=0
+        /\ \/ /\ NSBut' = 1
+           \/ /\ NSBut' = 0
+        /\ pc' = [pc EXCEPT ![4] = "NSb1"]
+        /\ UNCHANGED << NS, EW, NSVeh, EWVeh, NSPed, EWPed, EWBut >>
+
+NSButton == NSb1
+
+EWb1 == /\ pc[5] = "EWb1"
+        /\ EWBut=0
+        /\ \/ /\ EWBut' = 1
+           \/ /\ EWBut' = 0
+        /\ pc' = [pc EXCEPT ![5] = "EWb1"]
+        /\ UNCHANGED << NS, EW, NSVeh, EWVeh, NSPed, EWPed, NSBut >>
+
+EWButton == EWb1
+
+NSv1 == /\ pc[6] = "NSv1"
+        /\ NSVeh=0
+        /\ \/ /\ NSVeh' = 1
+           \/ /\ NSVeh' = 0
+        /\ pc' = [pc EXCEPT ![6] = "NSv1"]
+        /\ UNCHANGED << NS, EW, EWVeh, NSPed, EWPed, NSBut, EWBut >>
+
+NSVehicle == NSv1
+
+EWv1 == /\ pc[7] = "EWv1"
+        /\ EWVeh=0
+        /\ \/ /\ EWVeh' = 1
+           \/ /\ EWVeh' = 0
+        /\ pc' = [pc EXCEPT ![7] = "EWv1"]
+        /\ UNCHANGED << NS, EW, NSVeh, NSPed, EWPed, NSBut, EWBut >>
+
+EWVehicle == EWv1
+
+Next == NSTraffic \/ EWTraffic \/ NSPedTraffic \/ EWPedTraffic \/ NSButton
+           \/ EWButton \/ NSVehicle \/ EWVehicle
+
+Spec == /\ Init /\ [][Next]_vars
+        /\ WF_vars(Next)
+        /\ WF_vars(NSTraffic)
+        /\ WF_vars(EWTraffic)
+        /\ WF_vars(NSPedTraffic)
+        /\ WF_vars(EWPedTraffic)
+        /\ WF_vars(NSButton)
+        /\ WF_vars(EWButton)
+        /\ WF_vars(NSVehicle)
+        /\ WF_vars(EWVehicle)
 
 \* END TRANSLATION
 
@@ -258,23 +264,20 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
           /\ ~(NS="YELLOW" /\ EW="YELLOW") \*Both should not be yellow at the same time
           /\ ~(NS="GREEN" /\ EW="YELLOW") \* NS should not turn green until ew is red      
           
+ 
+ProcSet2 == {0} \cup {1} \cup {2} \cup {3} \cup {4} \cup {5}
+bpc == [self \in ProcSet2 |-> CASE self = 0 -> pc[0]
+            [] self = 1 -> pc[1]
+            [] self = 2 -> pc[2]
+            [] self = 3 -> pc[3]
+            [] self = 4 -> pc[4]
+            [] self = 5 -> pc[5]]
 
-\*ProcSet2 == {0} \cup {1} \cup {2}
-\*2 4 5 = 
-\*ProcSet2 == {0} \cup {1} \cup {2} \cup {3} \cup {4} \cup {5}
-\*bpc == [self \in ProcSet2 |-> CASE self = 0 -> pc[0]
-\*            [] self = 1 -> pc[1]
-\*            [] self = 2 -> pc[1]
-\*            [] self = 3 -> pc[2]
-\*            [] self = 4 -> pc[1]
-\*            [] self = 5 -> pc[1]]
-
-A == INSTANCE TrafficLight2 WITH NSPed<-NSPed, EWPed<-EWPed, NS<-NS, EW<-EW, yellow_interval<-yellow_interval,NSBut<-NSBut,EWBut<-EWBut, redgreen_interval_ped<-2,redgreen_interval<-5, pc<-pc   
-\*A == INSTANCE TrafficLight2 WITH NS<-NS, EW<-EW, redgreen_interval<-5, yellow_interval<-yellow_interval, pc<-pc  
+A == INSTANCE TrafficLight2 WITH NSPed<-NSPed, EWPed<-EWPed, NS<-NS, EW<-EW, NSBut<-NSBut, EWBut<-EWBut, pc<-bpc     
 
 =============================================================================
 \* Modification History
-\* Last modified Thu Nov 24 12:17:17 PST 2016 by Stella
+\* Last modified Fri Nov 25 13:17:52 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair

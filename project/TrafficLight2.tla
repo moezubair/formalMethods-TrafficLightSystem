@@ -3,13 +3,10 @@ EXTENDS Naturals
 (***************************************************************************
 --fair algorithm trafficLight {
 variables NS = "RED"; EW ="RED"; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;
-    \* label whiles and skips
-    \* goto nst1
     
     fair process (NSTraffic = 0){
         NSt1: while(TRUE){
-            await EW="RED" /\ EWBut=0 /\ EWPed="RED" /\ (NSBut=0 \/ (NSBut=1 /\ NSPed="GREEN"));
-\*            either{
+            await EW="RED" /\ EWPed="RED" /\ EWBut=0  /\ (NSBut=0 \/ NSPed="GREEN");
             NS:="GREEN";
             NSt2: skip;
             await NSPed="RED" \/ NSPed="YELLOW";
@@ -17,15 +14,12 @@ variables NS = "RED"; EW ="RED"; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;
             NSt3: skip;
             await NSPed="RED";
             NS:="RED";
-\*            }
-\*            or goto NSt1;
         }
     }
     
     fair process (EWTraffic = 1){
         EWt1: while(TRUE){
-            await NS="RED" /\ NSBut=0 /\ NSPed="RED" /\ (EWBut=0 \/ (EWBut=1 /\ EWPed="GREEN"));
-\*            either{
+            await NS="RED" /\ NSPed="RED" /\ NSBut=0 /\ (EWBut=0 \/ EWPed="GREEN");
             EW:="GREEN";
             EWt2: skip;
             await EWPed="RED" \/ EWPed="YELLOW";
@@ -33,8 +27,6 @@ variables NS = "RED"; EW ="RED"; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;
             EWt3: skip;
             await EWPed="RED";
             EW:="RED";
-\*            }
-\*            or goto EWt1;
         }
     }   
     
@@ -64,19 +56,17 @@ variables NS = "RED"; EW ="RED"; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;
     
     fair process (NSButton = 4){
         NSb1: while(TRUE){
-            if(NSBut=0){
+            await NSBut=0;
                 either NSBut:=1
-                or NSBut:=0
-            }
+                or NSBut:=0  
         }
     }
     
     fair process (EWButton = 5){
         EWb1: while(TRUE){
-            if(EWBut=0){
+            await EWBut=0;
                 either EWBut:=1
-                or EWBut:=1
-            }
+                or EWBut:=0
         }
     }
 
@@ -105,7 +95,7 @@ Init == (* Global variables *)
                                         [] self = 5 -> "EWb1"]
 
 NSt1 == /\ pc[0] = "NSt1"
-        /\ EW="RED" /\ EWBut=0 /\ EWPed="RED" /\ (NSBut=0 \/ (NSBut=1 /\ NSPed="GREEN"))
+        /\ EW="RED" /\ EWPed="RED" /\ EWBut=0  /\ (NSBut=0 \/ NSPed="GREEN")
         /\ NS' = "GREEN"
         /\ pc' = [pc EXCEPT ![0] = "NSt2"]
         /\ UNCHANGED << EW, NSPed, EWPed, NSBut, EWBut >>
@@ -127,7 +117,7 @@ NSt3 == /\ pc[0] = "NSt3"
 NSTraffic == NSt1 \/ NSt2 \/ NSt3
 
 EWt1 == /\ pc[1] = "EWt1"
-        /\ NS="RED" /\ NSBut=0 /\ NSPed="RED" /\ (EWBut=0 \/ (EWBut=1 /\ EWPed="GREEN"))
+        /\ NS="RED" /\ NSPed="RED" /\ NSBut=0 /\ (EWBut=0 \/ EWPed="GREEN")
         /\ EW' = "GREEN"
         /\ pc' = [pc EXCEPT ![1] = "EWt2"]
         /\ UNCHANGED << NS, NSPed, EWPed, NSBut, EWBut >>
@@ -191,22 +181,18 @@ EWPedt3 == /\ pc[3] = "EWPedt3"
 EWPedTraffic == EWPedt1 \/ EWPedt2 \/ EWPedt3
 
 NSb1 == /\ pc[4] = "NSb1"
-        /\ IF NSBut=0
-              THEN /\ \/ /\ NSBut' = 1
-                      \/ /\ NSBut' = 0
-              ELSE /\ TRUE
-                   /\ NSBut' = NSBut
+        /\ NSBut=0
+        /\ \/ /\ NSBut' = 1
+           \/ /\ NSBut' = 0
         /\ pc' = [pc EXCEPT ![4] = "NSb1"]
         /\ UNCHANGED << NS, EW, NSPed, EWPed, EWBut >>
 
 NSButton == NSb1
 
 EWb1 == /\ pc[5] = "EWb1"
-        /\ IF EWBut=0
-              THEN /\ \/ /\ EWBut' = 1
-                      \/ /\ EWBut' = 1
-              ELSE /\ TRUE
-                   /\ EWBut' = EWBut
+        /\ EWBut=0
+        /\ \/ /\ EWBut' = 1
+           \/ /\ EWBut' = 0
         /\ pc' = [pc EXCEPT ![5] = "EWb1"]
         /\ UNCHANGED << NS, EW, NSPed, EWPed, NSBut >>
 
@@ -258,7 +244,7 @@ bpc == [self \in ProcSet2 |-> CASE self = 0 -> pc[0]
 A == INSTANCE TrafficLight1 WITH NS<-NS, EW<-EW, pc<-bpc          
 =============================================================================
 \* Modification History
-\* Last modified Fri Nov 25 12:04:49 PST 2016 by Stella
+\* Last modified Fri Nov 25 13:21:14 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
