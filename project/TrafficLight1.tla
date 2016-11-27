@@ -2,27 +2,29 @@
 EXTENDS Naturals
 (***************************************************************************
 --algorithm trafficLight {
-variables NS = "RED"; EW ="RED";
+variables NS = "GREEN"; EW ="RED";
     
     process (NSTraffic = 0){
         NSt1: while(TRUE){
-            await EW="RED";
+            await EW="RED" \/ NS="GREEN";
             NS:="GREEN";
             NSt2: skip;
             NS:="YELLOW";
             NSt3: skip;
-            NS:="RED"
+            NS:="RED";
+            EW:="GREEN";
         }
     }
     
     process (EWTraffic = 1){
         EWt1: while(TRUE){
-            await EW="RED";
+            await NS="RED" \/ EW="GREEN";
             EW:="GREEN";
             EWt2: skip;
             EW:="YELLOW";
             EWt3: skip;
-            EW:="RED"
+            EW:="RED";
+            NS:="GREEN";
         }
     }       
 
@@ -37,13 +39,13 @@ vars == << NS, EW, pc >>
 ProcSet == {0} \cup {1}
 
 Init == (* Global variables *)
-        /\ NS = "RED"
+        /\ NS = "GREEN"
         /\ EW = "RED"
         /\ pc = [self \in ProcSet |-> CASE self = 0 -> "NSt1"
                                         [] self = 1 -> "EWt1"]
 
 NSt1 == /\ pc[0] = "NSt1"
-        /\ EW="RED"
+        /\ EW="RED" \/ NS="GREEN"
         /\ NS' = "GREEN"
         /\ pc' = [pc EXCEPT ![0] = "NSt2"]
         /\ EW' = EW
@@ -57,13 +59,13 @@ NSt2 == /\ pc[0] = "NSt2"
 NSt3 == /\ pc[0] = "NSt3"
         /\ TRUE
         /\ NS' = "RED"
+        /\ EW' = "GREEN"
         /\ pc' = [pc EXCEPT ![0] = "NSt1"]
-        /\ EW' = EW
 
 NSTraffic == NSt1 \/ NSt2 \/ NSt3
 
 EWt1 == /\ pc[1] = "EWt1"
-        /\ EW="RED"
+        /\ NS="RED" \/ EW="GREEN"
         /\ EW' = "GREEN"
         /\ pc' = [pc EXCEPT ![1] = "EWt2"]
         /\ NS' = NS
@@ -77,8 +79,8 @@ EWt2 == /\ pc[1] = "EWt2"
 EWt3 == /\ pc[1] = "EWt3"
         /\ TRUE
         /\ EW' = "RED"
+        /\ NS' = "GREEN"
         /\ pc' = [pc EXCEPT ![1] = "EWt1"]
-        /\ NS' = NS
 
 EWTraffic == EWt1 \/ EWt2 \/ EWt3
 
@@ -102,7 +104,7 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
 
 =============================================================================
 \* Modification History
-\* Last modified Fri Nov 25 13:20:43 PST 2016 by Stella
+\* Last modified Sun Nov 27 15:09:37 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
