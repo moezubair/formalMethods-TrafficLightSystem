@@ -1,3 +1,5 @@
+package trafficLight;
+
 import java.awt.Color;
 import java.awt.Graphics;
 import java.util.Random;
@@ -14,7 +16,7 @@ public class Intersection {
 	private Boolean EWVeh;
 	private Random randomno;
 
-	Intersection() {
+	public Intersection() {
 		/*
 		 * INIT State on TLA SPECS
 		 */
@@ -29,11 +31,7 @@ public class Intersection {
 	}
 
 	public void setNS(Color c) {
-		if (c == Color.RED) {
-			this.NS.setState(c);
-			this.EW.setState(Color.GREEN);
-			return;
-		}
+
 		/*
 		 * Safety Property, Both lights can't have the same state except for red
 		 */
@@ -47,12 +45,23 @@ public class Intersection {
 		return this.NS.getState();
 	}
 
-	public void setEW(Color c) {
-		if (c == Color.RED) {
-			this.EW.setState(c);
-			this.NS.setState(Color.GREEN);
-			return;
+	public Color getNSPed() {
+		return this.NSPed.getState();
+	}
+
+	public void setNSPed(Color c) {
+		/*
+		 * Safety Property, Both lights can't have the same state except for red
+		 */
+		if (c != NSPed.getState()) {
+
+			this.EWPed.setState(c);
 		}
+
+	}
+
+	public void setEW(Color c) {
+
 		/*
 		 * Safety Property, Both lights can't have the same state except for red
 		 */
@@ -87,44 +96,88 @@ public class Intersection {
 		this.setNS(Color.GREEN);
 	}
 
-	public void compute() {
-		if (NS.getState() == Color.YELLOW) {
-			NS.setState(Color.RED);
+	public void loopPed(PedestrianLight ped) {
+		if (ped.getState() == Color.GREEN) {
+			ped.setState(Color.YELLOW);
+		} else if (ped.getState() == Color.YELLOW) {
+			ped.setState(Color.RED);
 		}
-		if (EW.getState() == Color.YELLOW) {
-			EW.setState(Color.RED);
+	}
+
+	/*
+	 * Compute method represents the Liveness property. It simulates the sensors
+	 * picking up vehicles by using random number library. If a vehicle is
+	 * detected on opposite side of the green light, it changes that side to
+	 * yellow The lights cycle from RED->GREEN->YELLOW
+	 */
+	public int compute() {
+		/* Pedestrian Lights must loop through if green */
+		if (NSPed.getState() != Color.RED) {
+			loopPed(NSPed);
+			return 0;
+		} else if (EWPed.getState() != Color.RED) {
+			loopPed(EWPed);
+			return 0;
 		}
-		if (NS.getState() == Color.RED && EWVeh) {
-			EW.setState(Color.GREEN);
-			setEWVeh(false);
-		}
-		if (EW.getState() == Color.RED && NSVeh) {
-			NS.setState(Color.GREEN);
-			setNSVeh(false);
-		}
+		/* Randomly generated sensors */
 		if (!EWVeh) {
 			setEWVeh(randomno.nextBoolean());
-		} else {
-			if (NS.getState() == Color.GREEN && EW.getState() == Color.RED) {
-				NS.setState(Color.YELLOW);
-				return;
-			}
 		}
 		if (!NSVeh) {
-			setNSVeh(randomno.nextBoolean());
-		} else {
-			if (EW.getState() == Color.GREEN && NS.getState() == Color.RED) {
-				System.out.println("NS Vehical Detected. Changing EW from Green to Yellow");
-				EW.setState(Color.YELLOW);
-				return;
+			setNSVeh(randomno.nextBoolean() == true);
+		}
+		if (!EWPed.getButton()) {
+			if (randomno.nextInt(2) == 1) {
+				EWPed.setButton(randomno.nextBoolean());
 			}
 		}
+		if (!NSPed.getButton()) {
+			NSPed.setButton(randomno.nextBoolean());
+		}
+		if (NS.getState() == Color.YELLOW) { /* In TLA Yellow leads to Red */
+			NS.setState(Color.RED);
+			EW.setState(Color.GREEN);
+			if (EWPed.getButton()) {
+				EWPed.setState(Color.GREEN);
+				EWPed.setButton(false);
+			}
+			System.out.println("Changing NS from Yellow to RED");
+			System.out.println("Changing EW from Red to Green");
+			return 1;
+
+		} else if (EW
+				.getState() == Color.YELLOW) { /* In TLA Yellow leads to Red */
+			EW.setState(Color.RED);
+			NS.setState(Color.GREEN);
+			if (NSPed.getButton()) {
+				NSPed.setState(Color.GREEN);
+				NSPed.setButton(false);
+			}
+			System.out.println("Changing EW from Yellow to RED");
+			System.out.println("Changing NS from Red to Green");
+			return 1;
+		}
+		if (EWVeh && NS.getState() == Color.GREEN && EW.getState() == Color.RED) {//In TLA Green leads to Yellow
+			System.out.println("Changing NS to Yellow");
+			NSVeh = false;
+			NS.setState(Color.YELLOW);
+
+		} else if (NSVeh && EW.getState() == Color.GREEN && NS.getState() == Color.RED) {//In Green Read leads to Yellow
+			System.out.println("Changing EW to Yellow");
+			EWVeh = false;
+			EW.setState(Color.YELLOW);
+
+		}
+		return 0;
+
 	}
 
 	public void draw(Graphics g) {
 		// Background
 		this.NS.draw(g, NSVeh);
 		this.EW.draw(g, EWVeh);
+		this.NSPed.draw(g);
+		this.EWPed.draw(g);
 	}
 
 }
