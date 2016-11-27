@@ -1,5 +1,5 @@
+package trafficLight;
 import java.applet.Applet;
-import java.awt.Color;
 import java.awt.Graphics;
 
 @SuppressWarnings("serial")
@@ -38,8 +38,6 @@ public class MainAppFrame extends Applet {
 		super.paint(g);
 		intersection.draw(g);
 		intersection.compute();
-
-		// run();
 
 	}
 
