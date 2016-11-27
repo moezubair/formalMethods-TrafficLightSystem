@@ -46,9 +46,8 @@ public class TrafficLight {
 	}
 
 	public void draw(Graphics g,Boolean sensor) {
-		g.setColor(Color.BLACK);
-		g.draw3DRect(x - 5, y - 5, width, height, true);
-
+		g.setColor(Color.GRAY);
+		g.fill3DRect(x - 5, y - 5, width, height, true);
 		if (sensor){
 			g.drawRect(x-20, y, 10, 10);
 		}
