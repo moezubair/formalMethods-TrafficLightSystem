@@ -7,7 +7,6 @@ variables NS = "GREEN"; EW ="RED"; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;
     fair process (NSTraffic = 0){
         NSt1: while(TRUE){
             await NS="GREEN" /\ NSBut=0;
-            NS:="GREEN";
             NSt2: skip;
             await NSPed="RED" \/ NSPed="YELLOW";
             NS:="YELLOW";
@@ -21,7 +20,6 @@ variables NS = "GREEN"; EW ="RED"; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;
     fair process (EWTraffic = 1){
         EWt1: while(TRUE){
             await EW="GREEN" /\ EWBut=0;
-            EW:="GREEN";
             EWt2: skip;
             await EWPed="RED" \/ EWPed="YELLOW";
             EW:="YELLOW";
@@ -256,7 +254,7 @@ bpc == [self \in ProcSet2 |-> CASE self = 0 -> pc[0]
 A == INSTANCE TrafficLight1 WITH NS<-NS, EW<-EW, pc<-bpc          
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 27 16:04:32 PST 2016 by Stella
+\* Last modified Mon Nov 28 12:02:43 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair

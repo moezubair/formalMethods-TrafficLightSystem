@@ -6,8 +6,7 @@ variables NS = "GREEN"; EW ="RED";
     \*Simply switches between which light is green
     process (NSTraffic = 0){
         NSt1: while(TRUE){
-            await EW="RED" \/ NS="GREEN";
-            NS:="GREEN";
+            await EW="RED" /\ NS="GREEN";
             NSt2: skip;
             NS:="YELLOW";
             NSt3: skip;
@@ -18,8 +17,7 @@ variables NS = "GREEN"; EW ="RED";
     
     process (EWTraffic = 1){
         EWt1: while(TRUE){
-            await NS="RED" \/ EW="GREEN";
-            EW:="GREEN";
+            await NS="RED" /\ EW="GREEN";
             EWt2: skip;
             EW:="YELLOW";
             EWt3: skip;
@@ -104,7 +102,7 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 27 16:02:46 PST 2016 by Stella
+\* Last modified Mon Nov 28 12:02:18 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair

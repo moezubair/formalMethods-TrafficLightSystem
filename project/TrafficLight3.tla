@@ -1,4 +1,4 @@
---------------------------- MODULE TrafficLight3 ---------------------------
+0--------------------------- MODULE TrafficLight3 ---------------------------
 EXTENDS Naturals
 (***************************************************************************
 --fair algorithm trafficLight {
@@ -7,7 +7,6 @@ variables NS = "GREEN"; EW ="RED"; NSVeh=0; EWVeh=0; NSPed="RED"; EWPed="RED"; N
  fair process (NSTraffic = 0){
         NSt1: while(TRUE){
              await (EWVeh=1 \/ EWBut=1) /\ NS="GREEN" /\ EW="RED" /\ NSBut=0;
-                NS:="GREEN";
                 NSt2: skip;
                 await NSPed="RED" \/ NSPed="YELLOW";
                 NS:="YELLOW";
@@ -22,7 +21,6 @@ variables NS = "GREEN"; EW ="RED"; NSVeh=0; EWVeh=0; NSPed="RED"; EWPed="RED"; N
     fair process (EWTraffic = 1){
         EWt1: while(TRUE){
               await (NSVeh=1 \/ NSBut=1) /\ EW="GREEN" /\ NS="RED" /\ EWBut=0;
-                EW:="GREEN";
                 EWt2: skip;
                 await EWPed="RED" \/ EWPed="YELLOW";
                 EW:="YELLOW";
@@ -293,7 +291,7 @@ A == INSTANCE TrafficLight2 WITH NSPed<-NSPed, EWPed<-EWPed, NS<-NS, EW<-EW, NSB
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 27 16:05:41 PST 2016 by Stella
+\* Last modified Mon Nov 28 12:03:01 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
