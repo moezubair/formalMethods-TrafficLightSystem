@@ -1,0 +1,18 @@
+October 17th, 2016 - November 6th
+Muhammad Zubair: Created Github Repo and pushed part 1
+November 10th, 2016
+Cole McGinn, Gaurav Thakur, Muhammad Zubair:
+	Team Meeting. Discussed part 1. Part 1 modified
+November 11th-November13th
+	Cole McGinn: Worked on TLA refinements (Part 2 and Part 3)
+	Gaurav Thakur and Muhammad Zubair: Worked on implementations
+
+November 23rd 2016:
+	Team meeting. Cole finished refinements for part 2 and continued working on refinements for part 3. Muhammad and Gaurav worked on Implementations in Javascript and Java 
+November 25th 2016:
+	Team Meeting: Discussed part 2, 3 and 4. 
+November 26th 2016:
+	Cole worked on Part 3 
+	Muhammad Finished implementation in Java and test cases, and started writing the report
+November 27th 2016
+	Cole, Gaurav and Muhammad met to finish part 2 and 3. Modified part 2 and 3 to fix liveness properties. Finished report, worked on creating presentation slideshows
