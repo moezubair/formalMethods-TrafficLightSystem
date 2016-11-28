@@ -6,7 +6,8 @@ Cole McGinn, Gaurav Thakur, Muhammad Zubair:
 November 11th-November13th
 	Cole McGinn: Worked on TLA refinements (Part 2 and Part 3)
 	Gaurav Thakur and Muhammad Zubair: Worked on implementations
-
+November 20th 2016:
+	Cole McGinn: Worked on TLA refinements
 November 23rd 2016:
 	Team meeting. Cole finished refinements for part 2 and continued working on refinements for part 3. Muhammad and Gaurav worked on Implementations in Javascript and Java 
 November 25th 2016:
