@@ -3,7 +3,7 @@ EXTENDS Naturals
 (***************************************************************************
 --fair algorithm trafficLight {
 variables NS = "GREEN"; EW ="RED"; NSVeh=0; EWVeh=0; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0; 
-
+ \* Same as part 2 but waits for a vehicle or pedestrian button push in the opposite direction first
  fair process (NSTraffic = 0){
         NSt1: while(TRUE){
              await (EWVeh=1 \/ EWBut=1) /\ NS="GREEN" /\ EW="RED" /\ NSBut=0;
@@ -77,7 +77,7 @@ variables NS = "GREEN"; EW ="RED"; NSVeh=0; EWVeh=0; NSPed="RED"; EWPed="RED"; N
                 or EWBut:=0
         }
     }
-    
+    \*Randomly says if there is a vehicle waiting or not
     fair process (NSVehicle = 6){
         NSv1: while(TRUE){
             await NSVeh=0;
@@ -293,7 +293,7 @@ A == INSTANCE TrafficLight2 WITH NSPed<-NSPed, EWPed<-EWPed, NS<-NS, EW<-EW, NSB
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 27 15:45:55 PST 2016 by Stella
+\* Last modified Sun Nov 27 16:05:41 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair

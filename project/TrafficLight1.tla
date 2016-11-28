@@ -3,7 +3,7 @@ EXTENDS Naturals
 (***************************************************************************
 --algorithm trafficLight {
 variables NS = "GREEN"; EW ="RED";
-    
+    \*Simply switches between which light is green
     process (NSTraffic = 0){
         NSt1: while(TRUE){
             await EW="RED" \/ NS="GREEN";
@@ -104,7 +104,7 @@ safety == /\ ~(NS="GREEN" /\ EW="GREEN") \* Both should not be green
 
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 27 15:09:37 PST 2016 by Stella
+\* Last modified Sun Nov 27 16:02:46 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair

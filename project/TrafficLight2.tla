@@ -3,7 +3,7 @@ EXTENDS Naturals
 (***************************************************************************
 --fair algorithm trafficLight {
 variables NS = "GREEN"; EW ="RED"; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;
-    
+    \*switches between which light is green but pedestrian crossing takes priority
     fair process (NSTraffic = 0){
         NSt1: while(TRUE){
             await NS="GREEN" /\ NSBut=0;
@@ -31,7 +31,7 @@ variables NS = "GREEN"; EW ="RED"; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;
             NS:="GREEN";
         }
     }   
-    
+    \* Pedestrian crossing only when the correct properties are met
     fair process (NSPedTraffic = 2){
         NSPedt1: while(TRUE){
             await EW="RED" /\ NS="GREEN"  /\ NSBut=1; \* 
@@ -60,7 +60,8 @@ variables NS = "GREEN"; EW ="RED"; NSPed="RED"; EWPed="RED"; NSBut=0; EWBut=0;
             
         }
     }   
-    
+    \* Randomly presses a button for pedestrian crossing.
+    \* Must wait for the pedestrian light to be red to ensure it doesn't continually loop on one pedestrian crossing
     fair process (NSButton = 4){
         NSb1: while(TRUE){
             await NSBut=0 /\ NSPed="RED";
@@ -255,7 +256,7 @@ bpc == [self \in ProcSet2 |-> CASE self = 0 -> pc[0]
 A == INSTANCE TrafficLight1 WITH NS<-NS, EW<-EW, pc<-bpc          
 =============================================================================
 \* Modification History
-\* Last modified Sun Nov 27 15:46:04 PST 2016 by Stella
+\* Last modified Sun Nov 27 16:04:32 PST 2016 by Stella
 \* Last modified Mon Nov 07 10:13:51 PST 2016 by Zubair
 \* Last modified Sun Nov 06 00:34:00 PDT 2016 by Zubair
 \* Last modified Thu Nov 03 10:16:23 PDT 2016 by Zubair
